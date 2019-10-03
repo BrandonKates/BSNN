@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 from tensorflow.python.framework import ops
 from enum import Enum
-import seaborn as sns
-sns.set(color_codes=True)
 
 def reset_graph():
     if 'sess' in globals() and sess:
