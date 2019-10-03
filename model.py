@@ -13,8 +13,8 @@ class StochasticBinaryLayer(nn.Module):
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
         # We keep a running averave in order to compute the best loss correction to minmize estimator variance.
-        self.cnum = torch.tensor(0.0)
-        self.dnum = torch.tensor(0.25) #Assuming we're usually near 0.5
+        self.cnum = torch.tensor(0.0).cuda()
+        self.dnum = torch.tensor(0.25).cuda() #Assuming we're usually near 0.5
         self.last_squared_dif = torch.tensor(0)
         self.new_loss_importance = new_loss_importance
     

@@ -11,12 +11,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyper-parameters 
 input_size = 2
-hidden_size = 2
+hidden_size = 10
 num_classes = 2
 num_epochs = 5
 batch_size = 1
 learning_rate = 0.001
-
 n=100
 
 train_dataset, test_dataset, train_loader, test_loader = \
@@ -36,8 +35,9 @@ class LinearNet(nn.Module):
         return out
 #This function takes an input and predicts the class, (0 or 1)        
     def predict(self,x):
+        x = torch.from_numpy(x).type(torch.FloatTensor)
         #Apply softmax to output. 
-        pred = F.softmax(self.forward(x))
+        pred = F.softmax(self.forward(x), dim=0)
         ans = []
         #Pick the class with maximum weight
         for t in pred:
@@ -46,8 +46,8 @@ class LinearNet(nn.Module):
             else:
                 ans.append(1)
         return torch.tensor(ans)
-    
-if __name__ == "__main__":    
+
+def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, n=100, train_loader = train_loader, test_loader = test_loader):
     model = LinearNet(input_size, hidden_size, num_classes).to(device)
 
     # Loss and optimizer
@@ -92,3 +92,6 @@ if __name__ == "__main__":
     # Save the model checkpoint
     print(model.state_dict())
     torch.save(model.state_dict(), 'model.ckpt')
+    
+if __name__ == '__main__':
+    run_model()
