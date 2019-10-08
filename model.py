@@ -7,15 +7,18 @@ if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
+# change this if you have CUDA enabled
+device = torch.device("cpu")
+
 class StochasticBinaryLayer(nn.Module):
     def __init__(self, input_dim, output_dim, new_loss_importance = 0.1):
         super(StochasticBinaryLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
         # We keep a running averave in order to compute the best loss correction to minmize estimator variance.
-        self.cnum = torch.tensor(0.0).cuda()
-        self.dnum = torch.tensor(0.25).cuda() #Assuming we're usually near 0.5
-        self.last_squared_dif = torch.tensor(0)
+        self.cnum = torch.tensor(0.0, device=device)#.cuda()
+        self.dnum = torch.tensor(0.25, device=device)#.cuda() #Assuming we're usually near 0.5
+        self.last_squared_dif = torch.tensor(0, device=device)
         self.new_loss_importance = new_loss_importance
     
 
@@ -52,11 +55,11 @@ class StochasticBinaryLayer(nn.Module):
 
 
 def demonstrate():
-    sl = StochasticBinaryLayer(2, 3).cuda()
+    sl = StochasticBinaryLayer(2, 3)#.cuda()
     optimizer = torch.optim.Adam(sl.parameters(), lr=0.05)
-    target = torch.tensor([0., 0., 1.]).cuda()
+    target = torch.tensor([0., 0., 1.], device=device)#.cuda()
     for i in range(100):
-        inp = torch.randn(50, 2).cuda()
+        inp = torch.randn(50, 2, device=device)#.cuda()
         print("Starting New Minibatch")
         for i in range(20):
             optimizer.zero_grad()
