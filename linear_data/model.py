@@ -16,8 +16,8 @@ class StochasticBinaryLayer(nn.Module):
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
         # We keep a running averave in order to compute the best loss correction to minmize estimator variance.
-        self.cnum = torch.tensor(0.0, device=device)#.cuda()
-        self.dnum = torch.tensor(0.25, device=device)#.cuda() #Assuming we're usually near 0.5
+        self.cnum = torch.tensor(0.0, device=device).cuda()
+        self.dnum = torch.tensor(0.25, device=device).cuda() #Assuming we're usually near 0.5
         self.last_squared_dif = torch.tensor(0, device=device)
         self.new_loss_importance = new_loss_importance
     
@@ -52,10 +52,22 @@ class StochasticBinaryLayer(nn.Module):
     def parameters(self):
         # Everythin else is not trainable
         return self.lin.parameters()
+    
+    def predict(self,x):
+        x = torch.from_numpy(x).type(torch.FloatTensor)
+        #Apply softmax to output. 
+        pred = F.softmax(self.forward(x), dim=0)
+        ans = []
+        #Pick the class with maximum weight
+        for t in pred:
+            if t[0]>t[1]:
+                ans.append(-1)
+            else:
+                ans.append(1)
+        return torch.tensor(ans)
 
-
-def demonstrate():
-    sl = StochasticBinaryLayer(2, 3)#.cuda()
+def demonstrate(target):
+    sl = StochasticBinaryLayer(2, 1)#.cuda()
     optimizer = torch.optim.Adam(sl.parameters(), lr=0.05)
     target = torch.tensor([0., 0., 1.], device=device)#.cuda()
     for i in range(100):
