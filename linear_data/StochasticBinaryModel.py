@@ -33,10 +33,9 @@ class StochasticBinaryModel(nn.Module):
                 ans.append(1)
         return torch.tensor(ans)
  
-def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, n=100, train_loader = None, test_loader = None):
+def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None):
     model = StochasticBinaryModel(input_size, hidden_size, num_classes).cuda()
     # Loss and optimizer
-    criterion = nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
     # Train the model
@@ -45,7 +44,7 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
         for i, batch in enumerate(train_loader):
             optimizer.zero_grad()
             # Move tensors to the configured device
-            inputs = batch['input'].cuda()
+            inputs = batch['input'].float().cuda()
             labels = batch['label']
             # Forward pass
             outputs = model(inputs)
@@ -69,7 +68,7 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     correct = 0
     total = 0
     for batch in test_loader:
-        inputs = batch['input'].cuda()
+        inputs = batch['input'].float().cuda()
         labels = batch['label'].cuda()
         outputs = model(inputs)
         _, predicted = torch.max(outputs.data, 1)
@@ -84,6 +83,11 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     print("Model saved to: ", os.getcwd() + "/model.ckpt")
 
 if __name__ == "__main__":
+    from load_iris import getIrisDataLoader
+
+    trainData, testData, train, test = getIrisDataLoader()
+
+    '''
     from load_linearData import getLinearDataLoader
 
     # PARAMETERS:
@@ -102,6 +106,7 @@ if __name__ == "__main__":
         batch_size=batch_size, learning_rate=learning_rate, n=n,
         train_loader=train,
         test_loader=test)
+    '''
 
 
 

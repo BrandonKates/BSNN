@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from torch.utils.data.sampler import SubsetRandomSampler
 from sklearn import datasets
 
 
