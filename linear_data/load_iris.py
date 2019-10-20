@@ -23,13 +23,12 @@ class IrisDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
-        sample = {'input': self.inputs[idx], 'label': self.labels[idx]}
-        return sample
+            
+        return self.inputs[idx], self.labels[idx]
     
 def getIrisDataLoader(test_split = 0.2, batch_size = 1, num_workers = 1):
     dataset = datasets.load_iris()
-    inputs = dataset.data
+    inputs = np.float_(dataset.data)
     labels = dataset.target
     shuffle_dataset = True
     random_seed = 42

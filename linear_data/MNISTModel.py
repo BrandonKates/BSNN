@@ -9,10 +9,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import numpy
 from numpy import ravel, reshape, swapaxes
-import scipy.io
-from sklearn import svm
 from sklearn.metrics import confusion_matrix
-from random import sample
 from helpers import plot_confusion_matrix
 
 
@@ -34,16 +31,6 @@ class MNISTModel(nn.Module):
         self.layer1.get_grad(loss)
         #self.layer2.get_grad(loss)
         #self.layer3.get_grad(loss)
-    
-    def predict(self,x):
-        x = torch.from_numpy(x).type(torch.FloatTensor)
-        #Apply softmax to output.
-        pred = F.softmax(self.forward(x), dim=1)
-
-        ans = []
-        for prediction in pred:
-            ans.append(prediction.argmax().item())
-        return ans
  
 def run_model(num_epochs=100, learning_rate=0.001, train_loader = None, test_loader = None):
     model = MNISTModel().cuda()
@@ -78,8 +65,8 @@ def run_model(num_epochs=100, learning_rate=0.001, train_loader = None, test_loa
 
     # Save the model checkpoint
     #print(model.state_dict())
-    torch.save(model.state_dict(), 'models/MNIST_model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/models/MNIST_model.ckpt")
+    torch.save(model.state_dict(), 'models/mnist/MNIST_model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/models/mnist/MNIST_model.ckpt")
 
     # Test the model
     correct = 0

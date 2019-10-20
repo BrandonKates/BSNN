@@ -4,24 +4,25 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import os
 from StochasticBinaryLayer import StochasticBinaryLayer
+from helpers import get_confusion_matrix, plot_confusion_matrix
 
 class IrisModel(nn.Module):
     def __init__(self):
         super(IrisModel, self).__init__()
         self.layer1 = StochasticBinaryLayer(4, 32)
-        self.layer2 = StochasticBinaryLayer(32, 16)
+        self.layer2 = StochasticBinaryLayer(32, 3)
         self.layer3 = StochasticBinaryLayer(16, 3)
         
     def forward(self, x, with_grad=True):
         x = self.layer1(x, with_grad)
         x = self.layer2(x, with_grad)
-        x = self.layer3(x, with_grad)
+        #x = self.layer3(x, with_grad)
         return x
 
     def get_grad(self, loss):
         self.layer1.get_grad(loss)
         self.layer2.get_grad(loss)
-        self.layer3.get_grad(loss)
+        #self.layer3.get_grad(loss)
     
     def predict(self,x):
         x = torch.from_numpy(x).type(torch.FloatTensor)
@@ -70,24 +71,45 @@ def run_model(num_epochs=100, batch_size=1, learning_rate=0.001, train_loader = 
                 print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}' 
                        .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
 
-    # Test the model
-    correct = 0
-    total = 0
-    for batch in test_loader:
-        inputs = batch['input'].float().cuda()
-        labels = batch['label'].cuda()
-        outputs = model(inputs)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        # Test the model
+        correct = 0
+        total = 0
+        for batch in test_loader:
+            inputs = batch['input'].float().cuda()
+            labels = batch['label'].cuda()
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on iris data: {} %'.format(100 * correct / total))
+        print('Accuracy of the network on iris data: {} %'.format(100 * correct / total))
 
     # Save the model checkpoint
-    torch.save(model.state_dict(), 'models/iris_model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/models/iris_model.ckpt")
+    torch.save(model.state_dict(), 'models/iris/iris_model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/models/iris/iris_model.ckpt")
 
 if __name__ == "__main__":
     from load_iris import getIrisDataLoader
 
     trainData, testData, train, test = getIrisDataLoader()
+    num_epochs = 100
+    batch_size = 10
+    learning_rate = 0.001
+    run_model(num_epochs=num_epochs, \
+              batch_size=batch_size, \
+              learning_rate=learning_rate, \
+              train_loader = train, test_loader = test)
+
+
+    #load the model back
+    model = IrisModel()
+    state_dict = torch.load('/home/bjk224/BSNN/linear_data/models/iris/iris_model.ckpt')
+    model.load_state_dict(state_dict)
+
+    cm_train = get_confusion_matrix(trainData.labels, model.predict(trainData.inputs))
+    cm_test = get_confusion_matrix(testData.labels, model.predict(testData.inputs))
+    print("Confusion Train:\n", cm_train)
+    print("Confusion Test:\n", cm_test)
+    #helpers.py
+    plot_confusion_matrix(cm_train, "Train", 'iris_train')
+    plot_confusion_matrix(cm_test, "Test", 'iris_test')

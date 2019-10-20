@@ -7,13 +7,17 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from StochasticBinaryLayer import StochasticBinaryLayer
 
+import numpy as np
+from sklearn.metrics import confusion_matrix
+from helpers import plot_confusion_matrix
+
 
 class MNISTNet(nn.Module):
     def __init__(self):
         super(MNISTNet, self).__init__()
         self.layer1 = StochasticBinaryLayer(784, 10)
-        self.layer2 = StochasticBinaryLayer(28, 28)
-        self.layer3 = StochasticBinaryLayer(28, 28)
+        self.layer2 = StochasticBinaryLayer(1024, 512)
+        self.layer3 = StochasticBinaryLayer(512, 10)
         
     def forward(self, x, with_grad=True):
         x = x.view(-1, 28*28)
@@ -42,6 +46,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion):
                 100. * batch_idx / len(train_loader), loss.item()))
 
 def test(args, model, device, test_loader, criterion):
+    conf_mat = np.zeros((10,10))
     model.eval()
     test_loss = 0
     correct = 0
@@ -52,11 +57,16 @@ def test(args, model, device, test_loader, criterion):
         pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
         correct += pred.eq(labels.view_as(pred)).sum().item()
 
+        conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy())
+
+
     test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    print("Confusion Matrix:\n", np.int_(conf_mat))
+
 
 def main():
     # Training settings
