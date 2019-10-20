@@ -77,8 +77,8 @@ def run_model(num_epochs=100, learning_rate=0.001, train_loader = None, test_loa
 
     # Save the model checkpoint
     #print(model.state_dict())
-    torch.save(model.state_dict(), 'MNIST_model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/MNIST_model.ckpt")
+    torch.save(model.state_dict(), 'models/MNIST_model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/models/MNIST_model.ckpt")
 
     # Test the model
     correct = 0
@@ -103,9 +103,9 @@ def run_model(num_epochs=100, learning_rate=0.001, train_loader = None, test_loa
     plt.colorbar()
     plt.ylabel('True Label')
     plt.xlabel('Predicated Label')
-    plt.savefig('confusion_matrix'+'MNIST_test'+'.jpg')
+    plt.savefig('models/confusion_matrix'+'MNIST_test'+'.jpg')
     plt.show()
-    np.save('MNIST_confusion_matrix', conf_mat)
+    np.save('models/MNIST_confusion_matrix', conf_mat)
 
 
 if __name__ == "__main__":

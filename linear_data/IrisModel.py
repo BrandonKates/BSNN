@@ -85,8 +85,8 @@ def run_model(num_epochs=100, batch_size=1, learning_rate=0.001, train_loader = 
 
     # Save the model checkpoint
     print(model.state_dict())
-    torch.save(model.state_dict(), 'iris_model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/iris_model.ckpt")
+    torch.save(model.state_dict(), 'models/iris_model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/models/iris_model.ckpt")
 
 if __name__ == "__main__":
     from load_iris import getIrisDataLoader
