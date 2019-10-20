@@ -13,6 +13,7 @@ import scipy.io
 from sklearn import svm
 from sklearn.metrics import confusion_matrix
 from random import sample
+from helpers import plot_confusion_matrix
 
 
 class MNISTModel(nn.Module):
@@ -97,15 +98,7 @@ def run_model(num_epochs=100, learning_rate=0.001, train_loader = None, test_loa
     print("Confusion Matrix:\n", conf_mat)
     print('Accuracy of the network on MNIST data: {} %'.format(100 * correct / total))
 
-    fig = plt.figure()
-    plt.matshow(conf_mat)
-    plt.title('Confusion Matrix MNIST Digits')
-    plt.colorbar()
-    plt.ylabel('True Label')
-    plt.xlabel('Predicated Label')
-    plt.savefig('models/confusion_matrix'+'MNIST_test'+'.jpg')
-    plt.show()
-    np.save('models/MNIST_confusion_matrix', conf_mat)
+    plot_confusion_matrix(conf_mat, "Confusion Matrix MNIST Digits", 'MNIST')
 
 
 if __name__ == "__main__":

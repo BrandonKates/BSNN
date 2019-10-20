@@ -84,7 +84,6 @@ def run_model(num_epochs=100, batch_size=1, learning_rate=0.001, train_loader = 
     print('Accuracy of the network on iris data: {} %'.format(100 * correct / total))
 
     # Save the model checkpoint
-    print(model.state_dict())
     torch.save(model.state_dict(), 'models/iris_model.ckpt')
     print("Model saved to: ", os.getcwd() + "/models/iris_model.ckpt")
 
