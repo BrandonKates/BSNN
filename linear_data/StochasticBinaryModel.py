@@ -78,8 +78,8 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     print('Accuracy of the network on linearly separable data: {} %'.format(100 * correct / total))
 
     # Save the model checkpoint
-    torch.save(model.state_dict(), 'model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/model.ckpt")
+    torch.save(model.state_dict(), 'models/model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/models/model.ckpt")
 
 if __name__ == "__main__":
     from load_iris import getIrisDataLoader

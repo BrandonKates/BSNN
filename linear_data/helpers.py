@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 from numpy import ravel, reshape, swapaxes
 import scipy.io
 from sklearn import svm
