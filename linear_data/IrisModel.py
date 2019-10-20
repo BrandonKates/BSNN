@@ -6,19 +6,22 @@ import os
 from StochasticBinaryLayer import StochasticBinaryLayer
 
 class IrisModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self):
         super(IrisModel, self).__init__()
-        self.layer1 = StochasticBinaryLayer(input_size, hidden_size)
-        self.layer2 = StochasticBinaryLayer(hidden_size, num_classes)
+        self.layer1 = StochasticBinaryLayer(4, 32)
+        self.layer2 = StochasticBinaryLayer(32, 16)
+        self.layer3 = StochasticBinaryLayer(16, 3)
         
     def forward(self, x, with_grad=True):
         x = self.layer1(x, with_grad)
         x = self.layer2(x, with_grad)
+        x = self.layer3(x, with_grad)
         return x
 
     def get_grad(self, loss):
         self.layer1.get_grad(loss)
         self.layer2.get_grad(loss)
+        self.layer3.get_grad(loss)
     
     def predict(self,x):
         x = torch.from_numpy(x).type(torch.FloatTensor)
@@ -30,11 +33,8 @@ class IrisModel(nn.Module):
             ans.append(prediction.argmax().item())
         return ans
  
-def run_model(hidden_size=32, num_epochs=100, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None):
-    num_classes = 3
-    input_size = 4
-
-    model = IrisModel(input_size, hidden_size, num_classes).cuda()
+def run_model(num_epochs=100, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None):
+    model = IrisModel().cuda()
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
@@ -57,10 +57,10 @@ def run_model(hidden_size=32, num_epochs=100, batch_size=1, learning_rate=0.001,
             #labels_onehot.scatter_(1, (labels.long()).view(-1,1), 1)
 
             #loss = torch.sum((outputs - labels_onehot.cuda())**2) / batch_size
-            print("Inputs: ", inputs)
-            print("Labels: ", labels)
-            print("Outputs: ", outputs)
-            print()
+            #print("Inputs: ", inputs)
+            #print("Labels: ", labels)
+            #print("Outputs: ", outputs)
+            #print()
             loss = criterion(outputs, labels).cuda()
             # Backward and optimize
             model.get_grad(loss)
@@ -81,12 +81,12 @@ def run_model(hidden_size=32, num_epochs=100, batch_size=1, learning_rate=0.001,
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on linearly separable data: {} %'.format(100 * correct / total))
+    print('Accuracy of the network on iris data: {} %'.format(100 * correct / total))
 
     # Save the model checkpoint
     print(model.state_dict())
-    torch.save(model.state_dict(), 'model.ckpt')
-    print("Model saved to: ", os.getcwd() + "/model.ckpt")
+    torch.save(model.state_dict(), 'iris_model.ckpt')
+    print("Model saved to: ", os.getcwd() + "/iris_model.ckpt")
 
 if __name__ == "__main__":
     from load_iris import getIrisDataLoader
