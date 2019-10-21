@@ -50,7 +50,7 @@ class LinearNet(nn.Module):
 
 def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, n=100, train_loader = train_loader, test_loader = test_loader):
     #model = LinearNet(input_size, hidden_size, num_classes).to(device)
-    model = StochasticBinaryLayer(input_size, num_classes).cuda()
+    model = StochasticBinaryLayer(input_size, num_classes)#.cuda()
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  

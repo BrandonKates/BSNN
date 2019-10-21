@@ -3,15 +3,12 @@ from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import os
-if __name__ == "__main__":
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 class StochasticBinaryLayer2(nn.Module):
     def __init__(self, input_dim, output_dim, new_loss_importance = 0.1):
         super(StochasticBinaryLayer2, self).__init__()
         self.weight = nn.Parameter(
-        self.lin      = nn.Linear(input_dim,output_dim, bias=True)
+        self.lin = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
         # We keep a running averave in order to compute the best loss correction to minmize estimator variance.
         self.cnum = torch.tensor(0.0)
@@ -72,5 +69,8 @@ if __name__ == "__main__":
 #    sl = StochasticBinaryLayer(2, 3).cuda()
 #    print(sl.parameters())
 #    print(sl.lin.parameters())
+    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
     demonstrate()
 
