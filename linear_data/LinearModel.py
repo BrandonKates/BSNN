@@ -68,9 +68,8 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
             loss = criterion(outputs, labels)
 
             # Backward and optimize
-            
-            #loss.backward()
-            model.get_grad(loss)
+            optimizer.zero_grad()
+            loss.backward()
             optimizer.step()
 
             if (i+1) % 20 == 0:
@@ -79,16 +78,16 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
 
     # Test the model
     # In test phase, we don't need to compute gradients (for memory efficiency)
-    #with torch.no_grad():
-    correct = 0
-    total = 0
-    for batch in test_loader:
-        inputs = batch['input'].to(device)
-        labels = batch['label'].to(device)
-        outputs = model(inputs)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for batch in test_loader:
+            inputs = batch['input'].to(device)
+            labels = batch['label'].to(device)
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
     print('Accuracy of the network on linearly separable data: {} %'.format(100 * correct / total))
 
