@@ -9,19 +9,19 @@ from helpers import get_confusion_matrix, plot_confusion_matrix
 class IrisModel(nn.Module):
     def __init__(self):
         super(IrisModel, self).__init__()
-        self.layer1 = StochasticBinaryLayer(4, 32)
-        self.layer2 = StochasticBinaryLayer(32, 3)
-        self.layer3 = StochasticBinaryLayer(16, 3)
+        self.layer1 = StochasticBinaryLayer(4, 3)
+        #self.layer2 = StochasticBinaryLayer(32, 3)
+        #self.layer3 = StochasticBinaryLayer(16, 3)
         
     def forward(self, x, with_grad=True):
         x = self.layer1(x, with_grad)
-        x = self.layer2(x, with_grad)
+        #x = self.layer2(x, with_grad)
         #x = self.layer3(x, with_grad)
         return x
 
     def get_grad(self, loss):
         self.layer1.get_grad(loss)
-        self.layer2.get_grad(loss)
+        #self.layer2.get_grad(loss)
         #self.layer3.get_grad(loss)
     
     def predict(self,x):
