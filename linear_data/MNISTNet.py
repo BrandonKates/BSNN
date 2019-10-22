@@ -13,23 +13,26 @@ from helpers import plot_confusion_matrix
 
 
 class MNISTNet(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(MNISTNet, self).__init__()
-        self.layer1 = StochasticBinaryLayer(784, 10)
-        self.layer2 = StochasticBinaryLayer(1024, 512)
-        self.layer3 = StochasticBinaryLayer(512, 10)
-        
+        self.layer1 = StochasticBinaryLayer(784, 784*10, device=device)
+        self.layer2 = StochasticBinaryLayer(784*10, 1024, device=device)
+        self.layer3 = StochasticBinaryLayer(1024, 10, device=device)
+        #self.layer4 = StochasticBinaryLayer(512, 10)
+
     def forward(self, x, with_grad=True):
         x = x.view(-1, 28*28)
         x = self.layer1(x, with_grad)
-        #x = self.layer2(x, with_grad)
-        #x = self.layer3(x, with_grad)
+        x = self.layer2(x, with_grad)
+        x = self.layer3(x, with_grad)
+        #x = self.layer4(x, with_grad)
         return x
 
     def get_grad(self, loss):
         self.layer1.get_grad(loss)
-        #self.layer2.get_grad(loss)
-        #self.layer3.get_grad(loss)
+        self.layer2.get_grad(loss)
+        self.layer3.get_grad(loss)
+        #self.layer4.get_grad(loss)
     
 def train(args, model, device, train_loader, optimizer, epoch, criterion):
     model.train()
@@ -113,7 +116,7 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
 
-    model = MNISTNet().to(device)
+    model = MNISTNet(device=device).to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     criterion = nn.CrossEntropyLoss()
 

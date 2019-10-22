@@ -21,8 +21,6 @@ class LinearDataset(Dataset):
         neg = np.random.normal(loc=mu_2, scale=sigma, size=(n,d))
 
         inputs = np.vstack((pos, neg))
-        #labels = [[1,0]]*n; 
-        #labels.extend([[0,1]]*n)
         labels = np.concatenate((np.ones(n), np.zeros(n))) #negative examples have label == 0 => True
 
         return np.float32(inputs), np.int_(labels)
@@ -33,11 +31,9 @@ class LinearDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
+        return {self.inputs[idx], self.labels[idx]}
 
-        sample = {'input': self.inputs[idx], 'label': self.labels[idx]}
-        return sample
-    
-def getLinearDataLoader(n=100, d=2, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1):
+def getDataLoader(n=100, d=2, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1):
     train_n = int(n * (1-test_split))
     test_n = int(n * test_split)
     trainDataset = LinearDataset(n=train_n, d=d, sigma=sigma)
