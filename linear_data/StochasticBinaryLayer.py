@@ -5,14 +5,14 @@ import torch.nn.functional as F
 import os
 
 class StochasticBinaryLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1):
+    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
         super(StochasticBinaryLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
         # We keep a running averave in order to compute the best loss correction to minmize estimator variance.
-        self.cnum = torch.tensor(0.0).cuda()
-        self.dnum = torch.tensor(0.25).cuda() #Assuming we're usually near 0.5
-        self.last_squared_dif = torch.tensor(0).float().cuda()
+        self.cnum = torch.tensor(0.0).to(device)
+        self.dnum = torch.tensor(0.25).to(device) #Assuming we're usually near 0.5
+        self.last_squared_dif = torch.tensor(0).float().to(device)
         self.new_loss_importance = new_loss_importance
     
 

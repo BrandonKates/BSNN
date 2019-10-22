@@ -4,6 +4,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import os
 from StochasticBinaryLayer import StochasticBinaryLayer
+import argparse
+
 
 class StochasticBinaryModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -33,8 +35,8 @@ class StochasticBinaryModel(nn.Module):
                 ans.append(1)
         return torch.tensor(ans)
  
-def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None):
-    model = StochasticBinaryModel(input_size, hidden_size, num_classes).cuda()
+def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None, device="cpu"):
+    model = StochasticBinaryModel(input_size, hidden_size, num_classes).to(device)
     # Loss and optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
@@ -44,7 +46,7 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
         for i, batch in enumerate(train_loader):
             optimizer.zero_grad()
             # Move tensors to the configured device
-            inputs = batch['input'].float().cuda()
+            inputs = batch['input'].float().to(device)
             labels = batch['label']
             # Forward pass
             outputs = model(inputs)
@@ -55,7 +57,7 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
             labels_onehot.zero_()
             labels_onehot.scatter_(1, (labels.long()).view(-1,1), 1)
 
-            loss = torch.sum((outputs - labels_onehot.cuda())**2) / batch_size
+            loss = torch.sum((outputs - labels_onehot.to(device))**2) / batch_size
             # Backward and optimize
             model.get_grad(loss)
             optimizer.step()
@@ -68,8 +70,8 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     correct = 0
     total = 0
     for batch in test_loader:
-        inputs = batch['input'].float().cuda()
-        labels = batch['label'].cuda()
+        inputs = batch['input'].float().to(device)
+        labels = batch['label'].to(device)
         outputs = model(inputs)
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
@@ -82,11 +84,22 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     print("Model saved to: ", os.getcwd() + "/models/model.ckpt")
 
 if __name__ == "__main__":
+    '''
     from load_iris import getIrisDataLoader
 
     trainData, testData, train, test = getIrisDataLoader()
 
     '''
+    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    parser.add_argument('--no-cuda', action='store_true', default=False,
+                        help='disables CUDA training')
+    args = parser.parse_args()
+
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+
+
+    device = torch.device("cuda" if use_cuda else "cpu")
+
     from load_linearData import getLinearDataLoader
 
     # PARAMETERS:
@@ -102,10 +115,9 @@ if __name__ == "__main__":
         getLinearDataLoader(n=n, d=num_classes, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1)
     
     run_model(input_size = input_size, hidden_size=hidden_size, num_classes=num_classes, num_epochs=num_epochs,
-        batch_size=batch_size, learning_rate=learning_rate, n=n,
+        batch_size=batch_size, learning_rate=learning_rate,
         train_loader=train,
-        test_loader=test)
-    '''
+              test_loader=test, device=device)
 
 
 
