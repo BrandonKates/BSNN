@@ -26,7 +26,7 @@ class IrisDataset(Dataset):
             
         return self.inputs[idx], self.labels[idx]
     
-def getIrisDataLoader(test_split = 0.2, batch_size = 1, num_workers = 1):
+def getDataLoader(test_split = 0.2, batch_size = 1, num_workers = 1):
     dataset = datasets.load_iris()
     inputs = np.float_(dataset.data)
     labels = dataset.target

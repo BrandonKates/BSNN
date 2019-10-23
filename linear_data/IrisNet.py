@@ -14,11 +14,11 @@ from helpers import plot_confusion_matrix
 
 
 class IrisNet(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(IrisNet, self).__init__()
-        self.layer1 = StochasticBinaryLayer(4, 3)
-        #self.layer2 = StochasticBinaryLayer(10, 3)
-        #self.layer3 = StochasticBinaryLayer(16, 3)
+        self.layer1 = StochasticBinaryLayer(4, 3, device=device)
+        #self.layer2 = StochasticBinaryLayer(10, 3, device=device)
+        #self.layer3 = StochasticBinaryLayer(16, 3, device=device)
         
     def forward(self, x, with_grad=True):
         x = self.layer1(x, with_grad)
@@ -111,7 +111,7 @@ def main():
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     _,_,train_loader, test_loader = getIrisDataLoader()
 
-    model = IrisNet().to(device)
+    model = IrisNet(device=device).to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     criterion = nn.CrossEntropyLoss()
 
