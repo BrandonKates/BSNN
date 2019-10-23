@@ -11,11 +11,12 @@ from torchvision import transforms, utils
 class LinearDataset(Dataset):
     """Linearly Separable Dataset."""
 
-    def __init__(self, n, d, sigma = 0.15):
+    def __init__(self, n, d, sigma=0.15):
         self.inputs, self.labels = self.linearData(n, d, sigma)
         
     def linearData(self, n, d, sigma):
-        mu_1 = -0.5; mu_2 = 0.5
+        mu_1 = -0.5
+        mu_2 = 0.5
 
         pos = np.random.normal(loc=mu_1, scale=sigma, size=(n,d))
         neg = np.random.normal(loc=mu_2, scale=sigma, size=(n,d))
@@ -31,9 +32,9 @@ class LinearDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        return {self.inputs[idx], self.labels[idx]}
+        return {'input': self.inputs[idx], 'label': self.labels[idx]}
 
-def get(n=100, d=2, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1):
+def get(n=100, d=2, sigma=0.15, test_split=0.2, batch_size=1, num_workers=1):
     train_n = int(n * (1-test_split))
     test_n = int(n * test_split)
     trainDataset = LinearDataset(n=train_n, d=d, sigma=sigma)

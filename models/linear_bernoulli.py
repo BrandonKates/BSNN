@@ -1,17 +1,19 @@
+from layers import bernoulli
+
 import torch
 from torch import nn
-from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.autograd import Variable
+
 import os
-from StochasticBinaryLayer import StochasticBinaryLayer
 import argparse
 
 
-class StochasticBinaryModel(nn.Module):
+class LinearDataBernoulliModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
-        super(StochasticBinaryModel, self).__init__()
-        self.layer1 = StochasticBinaryLayer(input_size, hidden_size)
-        self.layer2 = StochasticBinaryLayer(hidden_size, num_classes)
+        super(LinearDataBernoulliModel, self).__init__()
+        self.layer1 = bernoulli.BernoulliLayer(input_size, hidden_size)
+        self.layer2 = bernoulli.BernoulliLayer(hidden_size, num_classes)
         
     def forward(self, x, with_grad=True):
         x = self.layer1(x, with_grad)
@@ -35,8 +37,8 @@ class StochasticBinaryModel(nn.Module):
                 ans.append(1)
         return torch.tensor(ans)
  
-def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001, train_loader = None, test_loader = None, device="cpu"):
-    model = StochasticBinaryModel(input_size, hidden_size, num_classes).to(device)
+def run_model(train_loader, test_loader,input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu"):
+    model = LinearDataBernoulliModel(input_size, hidden_size, num_classes).to(device)
     # Loss and optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
@@ -80,44 +82,7 @@ def run_model(input_size = 2, hidden_size=3, num_classes=2, num_epochs=5, batch_
     print('Accuracy of the network on linearly separable data: {} %'.format(100 * correct / total))
 
     # Save the model checkpoint
+    ''' TODO fix this
     torch.save(model.state_dict(), 'models/model.ckpt')
     print("Model saved to: ", os.getcwd() + "/models/model.ckpt")
-
-if __name__ == "__main__":
     '''
-    from load_iris import getIrisDataLoader
-
-    trainData, testData, train, test = getIrisDataLoader()
-
-    '''
-    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--no-cuda', action='store_true', default=False,
-                        help='disables CUDA training')
-    args = parser.parse_args()
-
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-
-
-    device = torch.device("cuda" if use_cuda else "cpu")
-
-    from load_linearData import getLinearDataLoader
-
-    # PARAMETERS:
-    n = 100
-    input_size = 2
-    hidden_size = 1
-    num_classes = 2
-    num_epochs = 50
-    batch_size = 1
-    learning_rate = 0.001
-
-    train_data, test_data, train, test = \
-        getLinearDataLoader(n=n, d=num_classes, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1)
-    
-    run_model(input_size = input_size, hidden_size=hidden_size, num_classes=num_classes, num_epochs=num_epochs,
-        batch_size=batch_size, learning_rate=learning_rate,
-        train_loader=train,
-              test_loader=test, device=device)
-
-
-
