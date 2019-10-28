@@ -1,5 +1,5 @@
 from dataloaders import linear, xor
-from models import linear_bernoulli 
+from models import linear_bernoulli, linear_binomial
 
 import torch
 
@@ -30,4 +30,19 @@ if args.dataset == 'linear':
     train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
 
     linear_bernoulli.run_model(train, test, input_size, hidden_size,
+            num_classes, num_epochs, batch_size, learning_rate, device)
+
+elif args.dataset == 'binomial':
+    n = 100
+    input_size = 2
+    hidden_size = 1
+    num_classes = 2
+    num_epochs = 200
+    batch_size = 1
+    learning_rate = 0.001
+
+
+    train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
+
+    linear_binomial.run_model(train, test, input_size, hidden_size,
             num_classes, num_epochs, batch_size, learning_rate, device)
