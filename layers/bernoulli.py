@@ -14,6 +14,7 @@ class BernoulliLayer(nn.Module):
         self.dnum = torch.tensor(0.25).to(device) #Assuming we're usually near 0.5
         self.last_squared_dif = torch.tensor(0).float().to(device)
         self.new_loss_importance = new_loss_importance
+        self.device = device
     
 
     def forward(self, x, with_grad=True):
@@ -23,11 +24,17 @@ class BernoulliLayer(nn.Module):
         o = torch.bernoulli(p)
         if with_grad:
             grad_cor = o - p
-            with torch.no_grad():
-                self.last_squared_dif = (grad_cor*grad_cor).mean()
+            #with torch.no_grad():
+            self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
             # This correctly takes care of exactly part of the gradient that does not depend on loss
-            torch.sum(l*grad_cor).backward()
+            torch.sum(grad_cor*l).backward()
+            '''
+            print "X=",x, "W=",self.lin.weight.data.T, "b=",self.lin.bias.data
+            print "eligibility=", grad_cor
+            print "grad=", self.lin.weight.grad
+            print "p=",p,"o=",o
+            '''
         return o
     
     def get_grad(self, loss):
@@ -37,6 +44,7 @@ class BernoulliLayer(nn.Module):
         c = self.cnum / self.dnum
         self.cnum = 0.9*self.cnum + 0.1*loss*self.last_squared_dif
         self.dnum = 0.9*self.dnum + 0.1*self.last_squared_dif
+        self.last_squared_dif = torch.tensor(0).float().to(self.device)
         # Then, we subtract if from the loss
         correction = loss - c
         # And finally, we compute the gradients that stem from this loss.

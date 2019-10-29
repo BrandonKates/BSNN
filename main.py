@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import argparse
 
+<<<<<<< HEAD
 from dataloaders import linear, xor
 from models import linear_bernoulli, linear_binomial, xor_bernoulli
 from parser import Parser
@@ -30,6 +31,7 @@ def main():
 
         linear_bernoulli.run_model(train, test, input_size, hidden_size,
                 num_classes, num_epochs, batch_size, learning_rate, device)
+
 
     elif args.dataset == 'binomial':
         n = 100

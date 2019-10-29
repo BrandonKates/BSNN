@@ -14,12 +14,12 @@ class BinomialLayer(nn.Module):
         self.dnum = torch.tensor(0.25).to(device) #Assuming we're usually near 0.5
         self.last_squared_dif = torch.tensor(0).float().to(device)
         self.new_loss_importance = new_loss_importance
-    
+        self.device = device
 
     def forward(self, x, with_grad=True):
         result = self.lin(x)
-        with torch.no_grad():
-            p = torch.sigmoid(result) # output of sigmoid is [0,1], so we use this function as squashing function to get a prob for bernoulli
+        #with torch.no_grad():
+        p = torch.sigmoid(result) # output of sigmoid is [0,1], so we use this function as squashing function to get a prob for bernoulli
         
         n=8 # SPECIFIED!
 
@@ -28,7 +28,7 @@ class BinomialLayer(nn.Module):
         if with_grad:
             grad_cor = k - n*p
             with torch.no_grad():
-                self.last_squared_dif = (grad_cor*grad_cor).mean()
+                self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
             # This correctly takes care of exactly part of the gradient that does not depend on loss
             torch.sum(result*grad_cor).backward()
@@ -41,6 +41,8 @@ class BinomialLayer(nn.Module):
         c = self.cnum / self.dnum
         self.cnum = 0.9*self.cnum + 0.1*loss*self.last_squared_dif
         self.dnum = 0.9*self.dnum + 0.1*self.last_squared_dif
+        self.last_squared_dif = torch.tensor(0).float().to(self.device)
+
         # Then, we subtract if from the loss
         correction = loss - c
         # And finally, we compute the gradients that stem from this loss.

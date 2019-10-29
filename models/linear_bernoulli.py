@@ -3,22 +3,25 @@ from layers import bernoulli
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-
+import numpy as np
 import os
 import argparse
 
 
 class LinearDataBernoulliModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self, input_size, hidden_size, num_classes, num_forward_passes):
         super(LinearDataBernoulliModel, self).__init__()
         self.layer1 = bernoulli.BernoulliLayer(input_size, hidden_size)
         self.layer2 = bernoulli.BernoulliLayer(hidden_size, num_classes)
+        self.num_forward_passes = num_forward_passes
         
     def forward(self, x, with_grad=True):
-        x = self.layer1(x, with_grad)
-        x = self.layer2(x, with_grad)
-        return x
+        outputs = []
+        for i in range(self.num_forward_passes):
+            y = self.layer1(x, with_grad)
+            z = self.layer2(y, with_grad)
+            outputs.append(z)
+        return sum(outputs) / self.num_forward_passes
 
     def get_grad(self, loss):
         self.layer1.get_grad(loss)
@@ -37,8 +40,8 @@ class LinearDataBernoulliModel(nn.Module):
                 ans.append(1)
         return torch.tensor(ans)
  
-def run_model(train_loader, test_loader,input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu"):
-    model = LinearDataBernoulliModel(input_size, hidden_size, num_classes).to(device)
+def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu"):
+    model = LinearDataBernoulliModel(input_size, hidden_size, num_classes, num_forward_passes).to(device)
     # Loss and optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
