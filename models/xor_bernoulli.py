@@ -76,7 +76,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_classes):
 
 def run_model(args, criterion, train_loader, test_loader, device, input_size, hidden_size, num_classes):
     model = Net(input_size, hidden_size, num_classes, device).to(device)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
