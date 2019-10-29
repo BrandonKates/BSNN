@@ -46,11 +46,10 @@ def main():
                 num_classes, num_epochs, batch_size, learning_rate, device)
 
     elif args.dataset == 'xor' or args.dataset == 'XOR':
-        n=100
+        n=200
         input_size = 2
-        hidden_size = 1
+        hidden_size = 10
         num_classes = 2
-        learning_rate = 0.001
 
         train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
 
