@@ -18,8 +18,8 @@ class BinomialLayer(nn.Module):
 
     def forward(self, x, with_grad=True):
         result = self.lin(x)
-        with torch.no_grad():
-            p = torch.sigmoid(result) # output of sigmoid is [0,1], so we use this function as squashing function to get a prob for bernoulli
+        #with torch.no_grad():
+        p = torch.sigmoid(result) # output of sigmoid is [0,1], so we use this function as squashing function to get a prob for bernoulli
         
         n=8 # SPECIFIED!
 

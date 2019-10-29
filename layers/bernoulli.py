@@ -24,8 +24,8 @@ class BernoulliLayer(nn.Module):
         o = torch.bernoulli(p)
         if with_grad:
             grad_cor = o - p
-            with torch.no_grad():
-                self.last_squared_dif += (grad_cor*grad_cor).mean()
+            #with torch.no_grad():
+            self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
             # This correctly takes care of exactly part of the gradient that does not depend on loss
             torch.sum(grad_cor*l).backward()
