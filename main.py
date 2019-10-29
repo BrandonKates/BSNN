@@ -7,7 +7,6 @@ import argparse
 from dataloaders import linear, xor
 from models import linear_bernoulli, linear_binomial, xor_bernoulli
 from parser import Parser
-from run_model import run
 
 def main():
     args = Parser().parse()
