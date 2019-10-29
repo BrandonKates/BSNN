@@ -21,9 +21,9 @@ class BernoulliLayer(nn.Module):
         l = self.lin(x)
         with torch.no_grad():
             p = torch.sigmoid(l)
-        o = torch.bernoulli(p)
+        o = 2* torch.bernoulli(p) - 1
         if with_grad:
-            grad_cor = o - p
+            grad_cor = (o+1)/2 - p
             #with torch.no_grad():
             self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html

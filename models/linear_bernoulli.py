@@ -62,7 +62,7 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
             labels_onehot.zero_()
             labels_onehot.scatter_(1, (labels.long()).view(-1,1), 1)
 
-            loss = torch.sum((outputs - labels_onehot.to(device))**2) / batch_size
+            loss = torch.sum(((1 + outputs)/2 - labels_onehot.to(device))**2) / batch_size
             # Backward and optimize
             model.get_grad(loss)
             optimizer.step()
