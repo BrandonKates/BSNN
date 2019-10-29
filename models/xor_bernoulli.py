@@ -72,9 +72,10 @@ def test(args, model, device, test_loader, criterion, batch_size, num_classes):
         100. * correct / len(test_loader.dataset)))
     print("Confusion Matrix:\n", np.int_(conf_mat))
 
-def run_model(args, model, optimizer, criterion, train_loader, test_loader, device, num_classes):
+def run_model(args, criterion, train_loader, test_loader, device, input_size, hidden_size, num_classes):
+    model = Net(input_size, hidden_size, num_classes, device).to(device)
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
-    model = Net()
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
         test(args, model, device, test_loader, criterion, args.batch_size, num_classes=num_classes)

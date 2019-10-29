@@ -51,16 +51,14 @@ def main():
         input_size = 2
         hidden_size = 1
         num_classes = 2
-        num_epochs = 100
-        batch_size = 12
         learning_rate = 0.001
 
-        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = batch_size, num_workers = 1)
-        model = xor_bernoulli.Net(input_size, hidden_size, num_classes, device).to(device)
+        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
 
-        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
         criterion = nn.MSELoss()
-        run(args, model, optimizer, criterion, train_loader, test_loader, device, num_classes=num_classes)
+        xor_bernoulli.run_model(
+            args, criterion, train_loader, test_loader, 
+            device, input_size, hidden_size, num_classes)
 
 if __name__ == '__main__':
     main()
