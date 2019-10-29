@@ -21,9 +21,13 @@ class XORDataset(Dataset):
         neg2 = np.random.normal(loc=mu_4, scale=sigma, size=(n,d))
 
         inputs = np.vstack((pos, pos2, neg, neg2))
-        labels = np.concatenate((np.ones(2*n), np.zeros(2*n))) #label=0 for negative, label=1 for positive
+        labels = np.concatenate(
+                                (np.array([[0,1]]*2*n), #label = [0,1] positive
+                                 np.array([[1,0]]*2*n)) #label = [1,0] negative
+                                )
+        #np.concatenate((np.ones(2*n), np.zeros(2*n))) #label=0 for negative, label=1 for positive
 
-        return np.float32(inputs), np.int_(labels)
+        return np.float32(inputs), np.float32(labels)
     
     def __len__(self):
         return len(self.labels)
@@ -31,14 +35,7 @@ class XORDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        print(idx)
-        print(self.labels)
-        print(type(self.labels))
-        print(self.labels.shape)
-        print("INPUTS OUT: ", self.inputs[idx])
-        print("LABELS OUT: ", self.labels[idx])
-        return {self.inputs[idx], \
-        self.labels[idx]}
+        return self.inputs[idx], self.labels[idx]
 
 
 def get(n=100, d=2, sigma = 0.25, test_split = 0.2, batch_size = 1, num_workers = 1):

@@ -1,50 +1,63 @@
-from dataloaders import linear, xor
-from models import linear_bernoulli, linear_binomial
-
 import torch
-
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
 import argparse
 
-parser = argparse.ArgumentParser(description='train a stochastic model')
-parser.add_argument('--no-cuda', action='store_true', default=False,
-                    help='disables CUDA training')
-parser.add_argument('--dataset', '-d', type=str, required=True, 
-                    help='which dataset do you want to train on?')
-parser.add_argument('-nfp', type=int, required=False, default=1, 
-                    help='Number of forward passes?')
+from dataloaders import linear, xor
+from models import linear_bernoulli, linear_binomial, xor_bernoulli
+from parser import Parser
 
-args = parser.parse_args()
-use_cuda = not args.no_cuda and torch.cuda.is_available()
-device = torch.device("cuda" if use_cuda else "cpu")
+def main():
+    args = Parser().parse()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    
+    torch.manual_seed(args.seed)
 
-
-
-if args.dataset == 'linear':
-    n = 100
-    input_size = 2
-    hidden_size = 1
-    num_classes = 2
-    num_epochs = 100
-    batch_size = 1
-    learning_rate = 0.001
+    if args.dataset == 'linear':
+        n = 100
+        input_size = 2
+        hidden_size = 1
+        num_classes = 2
+        num_epochs = 200
+        batch_size = 1
+        learning_rate = 0.001
 
 
-    train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
+        train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
 
-    linear_bernoulli.run_model(train, test, args.nfp, input_size, hidden_size,
-                               num_classes, num_epochs, batch_size, learning_rate, device)
-
-elif args.dataset == 'binomial':
-    n = 100
-    input_size = 2
-    hidden_size = 1
-    num_classes = 2
-    num_epochs = 1000
-    batch_size = 1
-    learning_rate = 0.001
+        linear_bernoulli.run_model(train, test, input_size, hidden_size,
+                num_classes, num_epochs, batch_size, learning_rate, device)
 
 
-    train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
+    elif args.dataset == 'binomial':
+        n = 100
+        input_size = 2
+        hidden_size = 1
+        num_classes = 2
+        num_epochs = 200
+        batch_size = 1
+        learning_rate = 0.001
 
-    linear_binomial.run_model(train, test, args.nfp, input_size, hidden_size,
-                              num_classes, num_epochs, batch_size, learning_rate, device)
+        train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
+
+        linear_binomial.run_model(train, test, input_size, hidden_size,
+                num_classes, num_epochs, batch_size, learning_rate, device)
+
+    elif args.dataset == 'xor' or args.dataset == 'XOR':
+        n=100
+        input_size = 2
+        hidden_size = 1
+        num_classes = 2
+        learning_rate = 0.001
+
+        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
+
+        criterion = nn.MSELoss()
+        xor_bernoulli.run_model(
+            args, criterion, train_loader, test_loader, 
+            device, input_size, hidden_size, num_classes)
+
+if __name__ == '__main__':
+    main()
