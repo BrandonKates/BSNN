@@ -24,15 +24,17 @@ class Net(nn.Module):
         self.layer1.get_grad(loss)
         self.layer2.get_grad(loss)
     
-    def predict(self,x):
-        x = torch.from_numpy(x).type(torch.FloatTensor).cuda()
-        #Apply softmax to output.
-        pred = F.softmax(self.forward(x), dim=1)
+    def predict(self, device):
+        def func(x):
+            x = torch.from_numpy(x).type(torch.FloatTensor).to(device)
+            #Apply softmax to output.
+            pred = F.softmax(self.forward(x), dim=1)
 
-        ans = []
-        for prediction in pred:
-            ans.append(prediction.argmax().item())
-        return ans
+            ans = []
+            for prediction in pred:
+                ans.append(prediction.argmax().item())
+            return ans
+        return func
 
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size):
@@ -83,6 +85,6 @@ def run_model(args, criterion, train_loader, test_loader, device, input_size, hi
     if (args.save_model):
         torch.save(model.state_dict(), args.save_location)
 
-    plot_decision_boundary(model.predict, test_loader.dataset.inputs, test_loader.dataset.labels)
+    plot_decision_boundary(model.predict(device), test_loader.dataset.inputs, test_loader.dataset.labels, save_name='xor_bernoulli')
 
 
