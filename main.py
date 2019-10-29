@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 import argparse
 
-<<<<<<< HEAD
 from dataloaders import linear, xor
 from models import linear_bernoulli, linear_binomial, xor_bernoulli
 from parser import Parser
@@ -59,9 +58,9 @@ def main():
         train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = batch_size, num_workers = 1)
         model = xor_bernoulli.Net(input_size, hidden_size, num_classes, device).to(device)
 
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
-    criterion = nn.MSELoss()
-    run(args, model, optimizer, criterion, train_loader, test_loader, device, num_classes=num_classes)
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
+        criterion = nn.MSELoss()
+        run(args, model, optimizer, criterion, train_loader, test_loader, device, num_classes=num_classes)
 
 if __name__ == '__main__':
     main()
