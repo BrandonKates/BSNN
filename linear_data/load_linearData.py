@@ -31,7 +31,7 @@ class LinearDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        return {self.inputs[idx], self.labels[idx]}
+        return self.inputs[idx], self.labels[idx]
 
 def getDataLoader(n=100, d=2, sigma = 0.15, test_split = 0.2, batch_size = 1, num_workers = 1):
     train_n = int(n * (1-test_split))
