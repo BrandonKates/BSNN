@@ -53,6 +53,7 @@ def main():
         all_results = []
         all_results.append(['num_epochs','binomial_n','result'])
         for num_epochs_i in range(1,1000):
+            print("Num_Epochs: ", num_epochs_i)
             for binomial_n_j in range(1,50):
                 result = linear_binomial.run_model(train, test, 1, input_size, hidden_size,
                     num_classes, num_epochs_i, batch_size, learning_rate, device, binomial_n_j)
