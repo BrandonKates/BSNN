@@ -10,10 +10,10 @@ import argparse
 
 
 class LinearDataBinomialModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes, num_forward_passes):
+    def __init__(self, input_size, hidden_size, num_classes, num_forward_passes, n):
         super(LinearDataBinomialModel, self).__init__()
-        self.layer1 = binomial.BinomialLayer(input_size, hidden_size)
-        self.layer2 = binomial.BinomialLayer(hidden_size, num_classes)
+        self.layer1 = binomial.BinomialLayer(input_size, hidden_size,n)
+        self.layer2 = binomial.BinomialLayer(hidden_size, num_classes,n)
         self.num_forward_passes = num_forward_passes
 
     def forward(self, x, with_grad=True):
@@ -42,8 +42,8 @@ class LinearDataBinomialModel(nn.Module):
                 ans.append(1)
         return torch.tensor(ans)
  
-def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu"):
-    model = LinearDataBinomialModel(input_size, hidden_size, num_classes, num_forward_passes).to(device)
+def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu",n=1):
+    model = LinearDataBinomialModel(input_size, hidden_size, num_classes, num_forward_passes,n).to(device)
     # Loss and optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
@@ -53,8 +53,8 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
         for i, batch in enumerate(train_loader):
             optimizer.zero_grad()
             # Move tensors to the configured device
-            inputs = batch['input'].float().to(device)
-            labels = batch['label']
+            inputs = batch[0].float().to(device)
+            labels = batch[1]
             # Forward pass
             outputs = model(inputs)
             # One hot encoding buffer that you create out of the loop and just keep reusing
@@ -69,23 +69,26 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
             model.get_grad(loss)
             optimizer.step()
 
-            if (i+1) % 10 == 0:
-                print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}' 
-                       .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
+            # if (i+1) % 10 == 0:
+            #     print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}' 
+            #            .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
 
     # Test the model
     correct = 0
     total = 0
     for batch in test_loader:
-        inputs = batch['input'].float().to(device)
-        labels = batch['label'].to(device)
+        inputs = batch[0].float().to(device)
+        labels = batch[1].to(device)
         outputs = model(inputs)
-        _, predicted = torch.max(outputs.data, 1)
+        _s, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
+
         correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on linearly separable data: {} %'.format(100 * correct / total))
 
+    return 100 * correct / total
+    
+    return 
     # Save the model checkpoint
     ''' TODO fix this
     torch.save(model.state_dict(), 'models/model.ckpt')
