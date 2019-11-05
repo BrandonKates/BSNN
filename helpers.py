@@ -38,7 +38,7 @@ def plot_decision_boundary(pred_func,X,y, save_name=None):
 
     # Plot the contour and training examples
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    if y.shape[1] > 1:
+    if len(y.shape) > 1:
         y = np.argmax(y,1)
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.binary)
     

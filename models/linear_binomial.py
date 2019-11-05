@@ -50,11 +50,11 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
     # Train the model
     total_step = len(train_loader)
     for epoch in range(num_epochs):
-        for i, batch in enumerate(train_loader):
+        for i, (inputs, labels) in enumerate(train_loader):
             optimizer.zero_grad()
             # Move tensors to the configured device
-            inputs = batch['input'].float().to(device)
-            labels = batch['label']
+            inputs = inputs.float().to(device)
+            labels = labels.to(device)
             # Forward pass
             outputs = model(inputs)
             # One hot encoding buffer that you create out of the loop and just keep reusing
@@ -76,9 +76,9 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
     # Test the model
     correct = 0
     total = 0
-    for batch in test_loader:
-        inputs = batch['input'].float().to(device)
-        labels = batch['label'].to(device)
+    for (inputs, labels) in test_loader:
+        inputs = inputs.float().to(device)
+        labels = labels.to(device)
         outputs = model(inputs)
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)

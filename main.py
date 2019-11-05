@@ -5,7 +5,7 @@ import torch.optim as optim
 import argparse
 
 from dataloaders import linear, xor
-from models import linear_bernoulli, linear_binomial, xor_bernoulli
+from models import linear_bernoulli, linear_binomial, xor_bernoulli, xor_model
 from parser import Parser
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
         train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
 
-        linear_bernoulli.run_model(train, test, input_size, hidden_size,
+        linear_bernoulli.run_model(train, test, 1, input_size, hidden_size,
                 num_classes, num_epochs, batch_size, learning_rate, device)
 
 
@@ -42,14 +42,14 @@ def main():
 
         train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
 
-        linear_binomial.run_model(train, test, input_size, hidden_size,
+        linear_binomial.run_model(train, test, 1,input_size, hidden_size,
                 num_classes, num_epochs, batch_size, learning_rate, device)
 
     elif args.dataset == 'xor' or args.dataset == 'XOR':
         n=200
         input_size = 2
         hidden_size = 10
-        num_classes = 2
+        num_classes = 1
 
         train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
 
@@ -57,6 +57,19 @@ def main():
         xor_bernoulli.run_model(
             args, criterion, train_loader, test_loader, 
             device, input_size, hidden_size, num_classes)
+
+    elif args.dataset == 'xor-model':
+        n=200
+        input_size = 2
+        hidden_size = 10
+        num_classes = 1
+
+        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
+
+        criterion = nn.CrossEntropyLoss()
+        xor_model.run_model(
+            args, criterion, train_loader, test_loader, 
+            device, input_size, hidden_size, num_classes)       
 
 if __name__ == '__main__':
     main()

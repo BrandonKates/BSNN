@@ -53,17 +53,19 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
                 100. * batch_idx / len(train_loader), loss.item()))
 
 def test(args, model, device, test_loader, criterion, batch_size, num_classes):
-    conf_mat = np.zeros((num_classes, num_classes))
+    conf_mat = np.zeros((2, 2))
     model.eval()
     test_loss = 0
     correct = 0
     for inputs, labels in test_loader:
         inputs, labels = inputs.float().to(device), labels.to(device)
         output = model(inputs)
+        print(output)
+        print(labels)
         test_loss += criterion(output, labels).sum().item() # sum up batch loss
-        #pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-        #correct += torch.all(output.eq(labels)).sum().item()#output.eq(labels.view_as(output)).sum().item()
-        correct += output.eq(labels).sum(1).eq(num_classes).sum().item()
+        pred = output.squeeze()#output.argmax(dim=1, keepdim=True).float() # get the index of the max log-probability
+        correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
+        #correct += output.eq(labels).sum(1).eq(num_classes).sum().item()
         #conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy())
 
 

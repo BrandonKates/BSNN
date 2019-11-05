@@ -21,11 +21,11 @@ class XORDataset(Dataset):
         neg2 = np.random.normal(loc=mu_4, scale=sigma, size=(n,d))
 
         inputs = np.vstack((pos, pos2, neg, neg2))
-        labels = np.concatenate(
-                                (np.array([[0,1]]*2*n), #label = [0,1] positive
-                                 np.array([[1,0]]*2*n)) #label = [1,0] negative
-                                )
-        #np.concatenate((np.ones(2*n), np.zeros(2*n))) #label=0 for negative, label=1 for positive
+        labels = np.concatenate((np.ones(2*n), np.zeros(2*n))) #label=0 for negative, label=1 for positive
+        #np.concatenate(
+        #                        (np.array([[0,1]]*2*n), #label = [0,1] positive
+        #                         np.array([[1,0]]*2*n)) #label = [1,0] negative
+        #                        )
 
         return np.float32(inputs), np.float32(labels)
     
