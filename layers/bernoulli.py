@@ -13,7 +13,7 @@ class BernoulliLayer(nn.Module):
         self.cnum = torch.tensor(0.0).to(device)
         self.dnum = torch.tensor(0.25).to(device) #Assuming we're usually near 0.5
         self.last_squared_dif = torch.tensor(0).float().to(device)
-        self.new_loss_importance = new_loss_importance
+        self.new_loss_importance = new_loss_importance.to(device)
         self.device = device
     
 
