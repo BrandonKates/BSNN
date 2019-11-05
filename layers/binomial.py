@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import os
 
 class BinomialLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
+    def __init__(self, input_dim, output_dim, n=1, new_loss_importance = 0.1, device="cpu"):
         super(BinomialLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
@@ -15,18 +15,17 @@ class BinomialLayer(nn.Module):
         self.last_squared_dif = torch.tensor(0).float().to(device)
         self.new_loss_importance = new_loss_importance.to(device)
         self.device = device
+        self.n = n
 
     def forward(self, x, with_grad=True):
         result = self.lin(x)
         #with torch.no_grad():
         p = torch.sigmoid(result) # output of sigmoid is [0,1], so we use this function as squashing function to get a prob for bernoulli
         
-        n=8 # SPECIFIED!
-
-        k = torch.distributions.binomial.Binomial(total_count=n, probs=p).sample().to(self.device)
+        k = torch.distributions.binomial.Binomial(total_count=self.n, probs=p).sample().to(self.device)
 
         if with_grad:
-            grad_cor = k - n*p
+            grad_cor = k - self.n*p
             with torch.no_grad():
                 self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
