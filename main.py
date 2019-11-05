@@ -52,19 +52,19 @@ def main():
 
         all_results = []
         all_results.append(['num_epochs','binomial_n','result'])
-        for num_epochs_i in range(1,1000):
-            print("Num_Epochs: ", num_epochs_i)
+        for num_epochs_i in [1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90] + list(range(100,1000,50)):
+            #print("Num_Epochs: ", num_epochs_i)
             for binomial_n_j in range(1,50):
                 result = linear_binomial.run_model(train, test, 1, input_size, hidden_size,
                     num_classes, num_epochs_i, batch_size, learning_rate, device, binomial_n_j)
                 # 
-                # print('Accuracy of the network on linearly separable data where #epoch {1} and n_binom {2}: {0} %'.format(result,num_epochs_i,binomial_n_j), )
+                print('Accuracy of the network on linearly separable data where num_epochs {1} and n_binom {2}: {0} %'.format(result,num_epochs_i,binomial_n_j), )
                 # 
                 all_results.append([num_epochs_i,binomial_n_j, result])
-
+            np.savetxt("results/results.csv", all_results, delimiter=",", fmt='%s')
   
 
-        np.savetxt("results.csv", all_results, delimiter=",", fmt='%s')
+        np.savetxt("FinalResults.csv", all_results, delimiter=",", fmt='%s')
 
     elif args.dataset == 'xor' or args.dataset == 'XOR':
         n=200

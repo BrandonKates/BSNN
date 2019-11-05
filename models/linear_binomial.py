@@ -10,10 +10,10 @@ import argparse
 
 
 class LinearDataBinomialModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes, num_forward_passes, n):
+    def __init__(self, input_size, hidden_size, num_classes, num_forward_passes, n, device='cpu'):
         super(LinearDataBinomialModel, self).__init__()
-        self.layer1 = binomial.BinomialLayer(input_size, hidden_size,n)
-        self.layer2 = binomial.BinomialLayer(hidden_size, num_classes,n)
+        self.layer1 = binomial.BinomialLayer(input_size, hidden_size,n,device=device)
+        self.layer2 = binomial.BinomialLayer(hidden_size, num_classes,n,device=device)
         self.num_forward_passes = num_forward_passes
 
     def forward(self, x, with_grad=True):
@@ -43,7 +43,7 @@ class LinearDataBinomialModel(nn.Module):
         return torch.tensor(ans)
  
 def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidden_size=3, num_classes=2, num_epochs=5, batch_size=1, learning_rate=0.001,device="cpu",n=1):
-    model = LinearDataBinomialModel(input_size, hidden_size, num_classes, num_forward_passes,n).to(device)
+    model = LinearDataBinomialModel(input_size, hidden_size, num_classes, num_forward_passes,n, device).to(device)
     # Loss and optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  
 
@@ -58,7 +58,7 @@ def run_model(train_loader, test_loader, num_forward_passes, input_size=2, hidde
             # Forward pass
             outputs = model(inputs)
             # One hot encoding buffer that you create out of the loop and just keep reusing
-            labels_onehot = torch.FloatTensor(batch_size, num_classes)
+            labels_onehot = torch.FloatTensor(batch_size, num_classes).to(device)
 
             # In your for loop
             labels_onehot.zero_()
