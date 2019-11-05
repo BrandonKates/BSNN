@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import argparse
+import numpy as np
 
 from dataloaders import linear, xor
 from models import linear_bernoulli, linear_binomial, xor_bernoulli
@@ -50,8 +51,9 @@ def main():
 
 
         all_results = []
-        for num_epochs_i in range(1,1000):
-            for binomial_n_j in range(1,100):
+        all_results.append(['num_epochs','binomial_n','result'])
+        for num_epochs_i in range(1,4):
+            for binomial_n_j in range(1,4):
                 result = linear_binomial.run_model(train, test, 1, input_size, hidden_size,
                     num_classes, num_epochs_i, batch_size, learning_rate, device, binomial_n_j)
                 # 
@@ -59,6 +61,9 @@ def main():
                 # 
                 all_results.append([num_epochs_i,binomial_n_j, result])
 
+  
+
+        np.savetxt("results.csv", all_results, delimiter=",", fmt='%s')
 
 
     elif args.dataset == 'xor' or args.dataset == 'XOR':
