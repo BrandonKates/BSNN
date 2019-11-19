@@ -14,7 +14,7 @@ class XORDataset(Dataset):
     def xorData(self, n, d, sigma):
         mu_1 = [-1,-1]; mu_2 = [1,1]
         mu_3 = [-1, 1]; mu_4 = [1,-1]
-
+        n //= 4
         pos = np.random.normal(loc=mu_1, scale=sigma, size=(n,d))
         pos2 = np.random.normal(loc=mu_2, scale=sigma, size=(n,d))
         neg = np.random.normal(loc=mu_3, scale=sigma, size=(n,d))
