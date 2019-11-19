@@ -5,6 +5,8 @@ class Parser():
 		self.parser = argparse.ArgumentParser(description='Train BSNN Model')
 		self.parser.add_argument('--dataset', '-d', type=str, required=True, 
 		                    help='which dataset do you want to train on?')
+		self.parser.add_argument('--model', '-m', type=str, required=True, 
+		                    help='which model do you want to run?')
 		self.parser.add_argument('--epochs', type=int, default=100,
 		                    help='number of epochs to train (default: 100)')
 		self.parser.add_argument('--lr', type=float, default=0.01,
