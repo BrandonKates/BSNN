@@ -21,6 +21,7 @@ def plot_loss(filename):
             losses.append(float(line[line.find(keyword) + len(keyword):]))
     plt.plot(losses)
     plt.title('Loss')
+    plt.savefig('loss.png')
 
 def plot_accuracy(filename):
     f = open(filename)
@@ -32,6 +33,7 @@ def plot_accuracy(filename):
             accuracies.append(float(line[line.find(keyword) + len(keyword):line.find('/')]))
     plt.plot(accuracies)
     plt.title('Accuracy')
+    plt.savefig('accuracy.png')
 
 if args.loss:
     plot_loss(args.log_file)
@@ -41,3 +43,4 @@ if args.accuracy:
     plot_accuracy(args.log_file)
 
 plt.show()
+
