@@ -8,7 +8,7 @@ def get(test_split = 0.2, batch_size = 1, num_workers = 1):
             transforms.ToTensor(),
             transforms.Normalize(
                 (0.1307,), (0.3081,))
-        ]))
+        ]), download=True)
     mnist_test   = MNIST('MNIST_DATA/', train = False,
         transform = transforms.Compose([
             transforms.ToTensor(),
