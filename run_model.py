@@ -53,7 +53,7 @@ def run_model(model, args, criterion, train_loader, test_loader, output_size, de
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size, output_size)
         test(args, model, device, test_loader, criterion, args.batch_size, output_size)
-       # if epoch % 10 == 0:
+    if epoch % 50 == 0:
         if (args.save_model):
             torch.save(model.state_dict(), args.save_location + str(epoch))
 
