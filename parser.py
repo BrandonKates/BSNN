@@ -22,7 +22,7 @@ class Parser():
 
 		self.parser.add_argument('--save-model', '-s', action='store_true', default=False,
 		                    help='For Saving the current Model')
-		self.parser.add_argument('--save-location', '-l', action='store_true', default='checkpoints/model.pt',
+		self.parser.add_argument('--save-location', '-l', type=str, default='checkpoints/model.pt',
 		                    help='Location to Save Model')
 
 
@@ -37,6 +37,7 @@ class Parser():
 							help='input size of data')
 		self.parser.add_argument('--plot-boundary', action='store_true',
 							help='Should we plot the boundary (only works for 2d data)')
+		self.parser.add_argument('--hidden-layers', nargs='+', help='Hidden Layer sizes (as a list)', required=True)
 
 	def parse(self):
 		return self.parser.parse_args()
