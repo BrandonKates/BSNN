@@ -53,9 +53,9 @@ def run_model(model, args, criterion, train_loader, test_loader, output_size, de
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size, output_size)
         test(args, model, device, test_loader, criterion, args.batch_size, output_size)
-    if epoch % 50 == 0:
-        if (args.save_model):
-            torch.save(model.state_dict(), args.save_location + str(epoch))
+        if epoch % 50 == 0:
+            if (args.save_model):
+                torch.save(model.state_dict(), args.save_location + str(epoch))
 
     if args.plot_boundary:
         plot_decision_boundary(model.predict(device), test_loader.dataset.data, test_loader.dataset.targets, save_name=str(args.model) + str(args.dataset))
