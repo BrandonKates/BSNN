@@ -32,6 +32,8 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
     torch.manual_seed(1)
     train_data, test_data, train_loader, test_loader = get_data(args)
+    
+    print("Using device: ", device)
     print(train_data)
     print("Train Data Shape: ", train_data.data.shape)
     print("Test Data Shape: ", train_data.targets.shape)
