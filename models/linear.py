@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
+from listmodule import ListModule
 
 class LinearModel(nn.Module):
     def __init__(self, input_size, hidden_size_list, output_size):
@@ -11,11 +12,17 @@ class LinearModel(nn.Module):
         self.lin = []
         for i in range(len(sizes) - 1):
             self.lin.append(nn.Linear(sizes[i], sizes[i+1], bias=True))
+        self.lin = ListModule(*self.lin)
         
     def forward(self, x):
         for layer in self.lin:
             x = layer(x)
         return x
+
+    def get_grad(self, loss):
+        for layer in self.lin:
+            layer.backward(loss)
+
     
     def predict(self, device):
         def func(x):

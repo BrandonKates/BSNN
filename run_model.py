@@ -3,36 +3,39 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
+from helpers import plot_decision_boundary
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.to(device)
+        labels = labels.long()
         optimizer.zero_grad()
         output = model(inputs)
 
         loss = criterion(output, labels)
-        model.backward(loss)
-        optimizer.step()
+        model.get_grad(loss)
+        optimizer.step() 
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def test(args, model, device, test_loader, criterion, batch_size, num_classes):
+def test(args, model, device, test_loader, criterion, batch_size):
     conf_mat = np.zeros((2, 2))
     model.eval()
     test_loss = 0
     correct = 0
     for inputs, labels in test_loader:
         inputs, labels = inputs.float().to(device), labels.to(device)
+        labels = labels.long()
         output = model(inputs)
         print(output)
         print(labels)
         test_loss += criterion(output, labels).sum().item() # sum up batch loss
-        pred = output.argmax(dim=1, keepdim=True).float() # get the index of the max log-probability
+        pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
         correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
-        conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy())
+        #conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy())
 
 
     test_loss /= len(test_loader.dataset)
@@ -42,13 +45,13 @@ def test(args, model, device, test_loader, criterion, batch_size, num_classes):
         100. * correct / len(test_loader.dataset)))
     print("Confusion Matrix:\n", np.int_(conf_mat))
 
-def run_model(args, criterion, train_loader, test_loader, device, input_size, hidden_size, num_classes):
-    model = Net(device).to(device)
+def run_model(model, args, criterion, train_loader, test_loader, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
-        test(args, model, device, test_loader, criterion, args.batch_size, num_classes=num_classes)
+
+    test(args, model, device, test_loader, criterion, args.batch_size)
 
     if (args.save_model):
         torch.save(model.state_dict(), args.save_location)

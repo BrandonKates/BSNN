@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import numpy as np
 import os
 import argparse
+from listmodule import ListModule
 
 
 class BernoulliModel(nn.Module):
@@ -16,16 +17,18 @@ class BernoulliModel(nn.Module):
         for i in range(len(sizes) - 1):
             self.layers.append(bernoulli.BernoulliLayer(sizes[i], sizes[i+1]))
         self.layers.append(nn.Linear(sizes[-1], output_size))
-        
+        self.layers = ListModule(*self.layers)
+
         
     def forward(self, x):
-        for layer in self.lin:
+        for layer in self.layers:
             x = layer(x)
         return x
 
     def get_grad(self, loss):
-        for layer in self.layers:
-            layer.get_grad(loss)
+        for i in range(len(self.layers)-1):
+            self.layers[i].get_grad(loss)
+        loss.backward()
     
     def predict(self, device):
         def func(x):

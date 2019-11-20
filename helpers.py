@@ -1,19 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ravel, reshape, swapaxes
-import scipy.io
+from random import sample
+'''
 from sklearn import svm
 from sklearn.metrics import confusion_matrix
-from random import sample
 from sklearn.metrics import confusion_matrix
+'''
 
-
-
+'''
 def get_confusion_matrix(y_true, y_pred):
 	print("Accuracy: ", (y_true == y_pred).sum() / len(y_true))
 	return confusion_matrix(y_true, y_pred)
 
-def plot_confusion_matrix(cm, title: str = None, save_name = None):
+def plot_confusion_matrix(cm, title = None, save_name = None):
 	fig = plt.figure()
 	plt.matshow(cm)
 	plt.title(title)
@@ -24,6 +24,7 @@ def plot_confusion_matrix(cm, title: str = None, save_name = None):
 		plt.savefig('models/confusion_matrix'+str(save_name)+'.jpg')
 	plt.show()
 
+'''
 
 def plot_decision_boundary(pred_func,X,y, save_name=None):
     # Set min and max values and give it some padding

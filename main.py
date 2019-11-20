@@ -5,6 +5,7 @@ import numpy as np
 from dataloaders import linear_data, xor_data
 from models import linear, bernoulli
 from parser import Parser
+from run_model import run_model
 
 def main():
     args = Parser().parse()
@@ -17,6 +18,8 @@ def main():
     # labels should be a whole number from [0, num_classes - 1]
     output_size = int(max(max(train_data.labels), max(test_data.labels))) + 1
     model =  construct_model(args, output_size)
+    criterion = nn.CrossEntropyLoss() #TODO : make generic
+    run_model(model, args, criterion, train_loader, test_loader, device)
 
 def get_data(args):
     if args.dataset == 'linear':
@@ -32,7 +35,7 @@ def construct_model(args, output_size):
         return linear.LinearModel(args.input_size, [1,2], output_size)
 
     elif args.model == "bernoulli":
-        return bernoulli.BernoulliModel(args.input_size, [1,2], output_size)
+        return bernoulli.BernoulliModel(args.input_size, [6 ,5, 6], output_size)
 
 
 if __name__ == '__main__':
