@@ -9,6 +9,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.to(device)
+        inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
         output = model(inputs)
@@ -28,10 +29,9 @@ def test(args, model, device, test_loader, criterion, batch_size):
     correct = 0
     for inputs, labels in test_loader:
         inputs, labels = inputs.float().to(device), labels.to(device)
+        inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         output = model(inputs)
-        print(output)
-        print(labels)
         test_loss += criterion(output, labels).sum().item() # sum up batch loss
         pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
         correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
@@ -50,10 +50,9 @@ def run_model(model, args, criterion, train_loader, test_loader, device):
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
-
-    test(args, model, device, test_loader, criterion, args.batch_size)
+        test(args, model, device, test_loader, criterion, args.batch_size)
 
     if (args.save_model):
         torch.save(model.state_dict(), args.save_location)
 
-    plot_decision_boundary(model.predict(device), test_loader.dataset.inputs, test_loader.dataset.labels, save_name='xor_bernoulli')
+    plot_decision_boundary(model.predict(device), test_loader.dataset.data, test_loader.dataset.targets, save_name='xor_bernoulli')

@@ -9,7 +9,7 @@ from torchvision import transforms, utils
 
 class XORDataset(Dataset):
     def __init__(self, n, d, sigma):
-        self.inputs, self.labels = self.xorData(n, d, sigma)
+        self.data, self.targets = self.xorData(n, d, sigma)
         
     def xorData(self, n, d, sigma):
         mu_1 = [-1,-1]; mu_2 = [1,1]
@@ -30,12 +30,12 @@ class XORDataset(Dataset):
         return np.float32(inputs), np.float32(labels)
     
     def __len__(self):
-        return len(self.labels)
+        return len(self.targets)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        return self.inputs[idx], self.labels[idx]
+        return self.data[idx], self.targets[idx]
 
 
 def get(n=100, d=2, sigma = 0.25, test_split = 0.2, batch_size = 1, num_workers = 1):

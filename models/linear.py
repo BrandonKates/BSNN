@@ -3,7 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
-from listmodule import ListModule
+try:
+    from listmodule import ListModule
+except ImportError:
+    from .listmodule import ListModule
 
 class LinearModel(nn.Module):
     def __init__(self, input_size, hidden_size_list, output_size):

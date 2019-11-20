@@ -6,8 +6,10 @@ import torch.nn.functional as F
 import numpy as np
 import os
 import argparse
-from listmodule import ListModule
-
+try:
+    from listmodule import ListModule
+except ImportError:
+    from .listmodule import ListModule
 
 class BernoulliModel(nn.Module):
     def __init__(self, input_size, hidden_size_list, output_size):

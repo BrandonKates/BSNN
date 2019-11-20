@@ -14,10 +14,10 @@ def main():
     torch.manual_seed(1)
     train_data, test_data, train_loader, test_loader = get_data(args)
     print(train_data)
-    print("Train Data Shape: ", train_data.inputs.shape)
-    print("Test Data Shape: ", train_data.labels.shape)
+    print("Train Data Shape: ", train_data.data.shape)
+    print("Test Data Shape: ", train_data.targets.shape)
     # labels should be a whole number from [0, num_classes - 1]
-    output_size = int(max(max(train_data.labels), max(test_data.labels))) + 1
+    output_size = int(max(max(train_data.targets), max(test_data.targets))) + 1
     model =  construct_model(args, output_size)
     criterion = nn.CrossEntropyLoss() #TODO : make generic
     run_model(model, args, criterion, train_loader, test_loader, device)
@@ -40,7 +40,6 @@ def construct_model(args, output_size):
 
     elif args.model == "bernoulli":
         return bernoulli.BernoulliModel(args.input_size, [6 ,5, 6], output_size)
-
 
 if __name__ == '__main__':
     main()
