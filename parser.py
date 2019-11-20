@@ -35,6 +35,8 @@ class Parser():
 		                    help='input batch size for testing')
 		self.parser.add_argument('--input-size', type=int, default=2,
 							help='input size of data')
+		self.parser.add_argument('--plot-boundary', default=False,
+							help='Should we plot the boundary (only works for 2d data)')
 
 	def parse(self):
 		return self.parser.parse_args()

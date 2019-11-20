@@ -32,7 +32,7 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
     torch.manual_seed(1)
     train_data, test_data, train_loader, test_loader = get_data(args)
-    
+
     print("Using device: ", device)
     print(train_data)
     print("Train Data Shape: ", train_data.data.shape)
@@ -41,7 +41,7 @@ def main():
     output_size = int(max(max(train_data.targets), max(test_data.targets))) + 1
     model =  construct_model(args, output_size).to(device)
     criterion = nn.CrossEntropyLoss() #TODO : make generic
-    run_model(model, args, criterion, train_loader, test_loader, device)
+    run_model(model, args, criterion, train_loader, test_loader, output_size, device)
 
 if __name__ == '__main__':
     main()
