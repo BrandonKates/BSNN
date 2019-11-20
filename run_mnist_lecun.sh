@@ -1,7 +1,7 @@
-python main.py --dataset mnist --model bernoulli  --epochs 100 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 300
-python main.py --dataset mnist --model bernoulli  --epochs 100 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 1000
+python main.py --batch-size 64 --log-interval 100 --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 300 >> ./log/mnist/300.out 2>> ./log/mnist/300.err & 
+python main.py --batch-size 64 --log-interval 100 --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 1000 >> ./log/mnist/1000.out 2>> ./log/mnist/1000.err &
 
-python main.py --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 300 100
-python main.py --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 1000 150
+python main.py --batch-size 64 --log-interval 100 --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 300 100 >> ./log/mnist/300_100.out 2>> ./log/mnist/300_100.err &
+python main.py --batch-size 64 --log-interval 100 --dataset mnist --model bernoulli  --epochs 1000 --input-size 784 --save-model --save-location "./checkpoints/mnist_bernoulli" --hidden-layers 1000 150 >> ./log/mnist/1000_150.out 2>> ./log/mnist/1000_150.err &
 
 

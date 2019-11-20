@@ -41,6 +41,7 @@ def main():
     # labels should be a whole number from [0, num_classes - 1]
     output_size = int(max(max(train_data.targets), max(test_data.targets))) + 1
     model =  construct_model(args, output_size).to(device)
+    print("Model: ", model)
     criterion = nn.CrossEntropyLoss() #TODO : make generic
     run_model(model, args, criterion, train_loader, test_loader, output_size, device)
 
