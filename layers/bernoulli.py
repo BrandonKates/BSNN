@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import os
 
 class BernoulliLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
+    def __init__(self, input_dim, output_dim, new_loss_importance = 0.9, device="cpu"):
         super(BernoulliLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html
@@ -42,8 +42,8 @@ class BernoulliLayer(nn.Module):
         # First, we compute the c to subtract,
         loss = loss.float()
         c = self.cnum / self.dnum
-        self.cnum = 0.9*self.cnum + 0.1*loss*self.last_squared_dif
-        self.dnum = 0.9*self.dnum + 0.1*self.last_squared_dif
+        self.cnum = (1-self.new_loss_importance)*self.cnum + self.new_loss_importance*loss*self.last_squared_dif
+        self.dnum = (1-self.new_loss_importance)*self.dnum + self.new_loss_importance*self.last_squared_dif
         self.last_squared_dif = torch.tensor(0).float().to(self.device)
         # Then, we subtract if from the loss
         correction = loss - c
