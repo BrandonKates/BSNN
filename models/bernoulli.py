@@ -41,17 +41,16 @@ class BernoulliModel(nn.Module):
            for neuron_out  in prediction:
                dec += (neuron_out + 1)/2 * place
                place *= 2
-               ans.append(int(dec % int(pow(2,self.output_size))))
+           ans.append(int(dec % int(pow(2,self.output_size))))
        return torch.from_numpy(np.array(ans))
             
     def predict(self, device):
         def func(x):
-            print "PRED INPUT ", np.shape(x)
+            print("PRED INPUT ", np.shape(x))
             x = torch.from_numpy(x).type(torch.FloatTensor).to(device)
             #Assume binary output
-            pred = x
-            ret =  self.output_to_label(pred)
-            print "PRED OUT ", len(ret)
+            ret = self.forward(x)
+            print("PRED OUT ", len(ret))
             return ret
         return func
  
