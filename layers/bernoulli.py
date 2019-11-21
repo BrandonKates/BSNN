@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import os
 
 class BernoulliLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.9, device="cpu"):
+    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
         super(BernoulliLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=True)
         # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html

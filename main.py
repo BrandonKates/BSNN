@@ -6,6 +6,7 @@ from dataloaders import linear_data, xor_data, mnist_data
 from models import linear, bernoulli
 from parser import Parser
 from run_model import run_model
+from math import log, ceil
 
 def get_data(args):
     if args.dataset == 'linear':
@@ -39,11 +40,14 @@ def main():
     print("Train Data Shape: ", train_data.data.shape)
     print("Test Data Shape: ", train_data.targets.shape)
     # labels should be a whole number from [0, num_classes - 1]
-    output_size = int(max(max(train_data.targets), max(test_data.targets))) + 1
+    num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
+    output_size = int(ceil(log(num_labels, 2)))
     model =  construct_model(args, output_size).to(device)
     print("Model: ", model)
-    criterion = nn.CrossEntropyLoss() #TODO : make generic
-    run_model(model, args, criterion, train_loader, test_loader, output_size, device)
+#    criterion = nn.MSELoss() #TODO : make generic
+    def criterion(x,y):
+        return torch.sum(torch.mul(x-y, x-y))
+    run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
 
 if __name__ == '__main__':
     main()
