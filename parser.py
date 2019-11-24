@@ -29,6 +29,8 @@ class Parser():
 		# Data Arguments
 		self.parser.add_argument('--num-samples', '-n', type=int, default=100, 
 							help="Number of samples in dataset")
+		self.parser.add_argument('--num-labels', type=int, default=2, 
+							help="Number of classes in dataset")
 		self.parser.add_argument('--batch-size', type=int, default=16,
 		                    help='input batch size for training')
 		self.parser.add_argument('--test-batch-size', type=int, default=1000,

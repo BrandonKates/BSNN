@@ -13,7 +13,7 @@ except ImportError:
     from .listmodule import ListModule
 
 class BernoulliModel(nn.Module):
-    def __init__(self, input_size, hidden_size_list, output_size):
+    def __init__(self, input_size, hidden_size_list, output_size, num_labels):
         super(BernoulliModel, self).__init__()
         sizes = [input_size] + hidden_size_list + [output_size]
         self.layers = []
@@ -21,6 +21,7 @@ class BernoulliModel(nn.Module):
             self.layers.append(bernoulli.BernoulliLayer(sizes[i], sizes[i+1]))
         self.layers = ListModule(*self.layers)
         self.output_size = output_size
+        self.num_labels = num_labels
 
         
     def forward(self, x, with_grad=True):
@@ -41,7 +42,7 @@ class BernoulliModel(nn.Module):
            for neuron_out  in prediction:
                dec += (neuron_out + 1)/2 * place
                place *= 2
-           ans.append(int(dec % int(pow(2,self.output_size))))
+           ans.append(int(dec % int(self.num_labels)))
        return torch.from_numpy(np.array(ans))
 
    
