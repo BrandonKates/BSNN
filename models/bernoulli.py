@@ -23,13 +23,13 @@ class BernoulliModel(nn.Module):
         self.output_size = output_size
 
         
-    def forward(self, x):
+    def forward(self, x, with_grad=True):
         for layer in self.layers:
-            x = layer(x)
+            x = layer(x, with_grad)
         return self.output_to_label(x)
 
     def get_grad(self, loss):
-        for i in range(len(self.layers)-1):
+        for i in range(len(self.layers)):
             self.layers[i].get_grad(loss)
         
             
@@ -43,7 +43,8 @@ class BernoulliModel(nn.Module):
                place *= 2
            ans.append(int(dec % int(pow(2,self.output_size))))
        return torch.from_numpy(np.array(ans))
-            
+
+   
     def predict(self, device):
         def func(x):
             print("PRED INPUT ", np.shape(x))

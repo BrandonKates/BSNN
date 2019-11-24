@@ -17,7 +17,7 @@ class BernoulliLayer(nn.Module):
         self.device = device
     
 
-    def forward(self, x, with_grad=True):
+    def forward(self, x, with_grad):
         l = self.lin(x)
         with torch.no_grad():
             p = torch.sigmoid(l)
