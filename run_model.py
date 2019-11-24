@@ -37,7 +37,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
             test_loss += criterion(output, labels).sum().item() # sum up batch loss
             pred = output
             correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
-            conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy())
+            conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
         test_loss /= len(test_loader.dataset)
 

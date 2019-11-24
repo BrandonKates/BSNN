@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from dataloaders import linear_data, xor_data, mnist_data
+from dataloaders import linear_data, xor_data, mnist_data, spiral_data
 from models import linear, bernoulli
 from parser import Parser
 from run_model import run_model
@@ -17,6 +17,9 @@ def get_data(args):
 
     elif args.dataset in ['mnist', 'MNIST']:
         train_data, test_data, train_loader, test_loader = mnist_data.get(test_split = 0.2, batch_size = args.batch_size, num_workers=1)
+
+    elif args.dataset == 'spiral':
+        train_data, test_data, train_loader, test_loader = spiral_data.get(n=args.num_samples, test_split=.2,batch_size=args.batch_size)
     
     return train_data, test_data, train_loader, test_loader
 
@@ -51,16 +54,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-    '''
-        criterion = nn.MSELoss()
-        xor_bernoulli.run_model(
-            args, criterion, train_loader, test_loader, 
-            device, input_size, hidden_size, num_classes)
-
-
-        criterion = nn.CrossEntropyLoss()
-        xor_model.run_model(
-            args, criterion, train_loader, test_loader, 
-            device, input_size, hidden_size, num_classes)  
-'''
