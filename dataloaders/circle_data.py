@@ -23,7 +23,6 @@ class CircleDataset(Dataset):
             labels += [label] * n
             inputs += [[r * cos(theta), r * sin(theta)] for theta in thetas]
 
-        print labels
         return np.float32(inputs), np.float32(labels)
     
     def __len__(self):
