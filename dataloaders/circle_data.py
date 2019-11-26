@@ -22,8 +22,6 @@ class CircleDataset(Dataset):
             thetas = np.random.uniform(label * 2*pi / num_labels , (label + 1) * 2*pi / num_labels, n)
             labels += [label] * n
             inputs += [[r * cos(theta), r * sin(theta)] for theta in thetas]
-
-#        print labels
         return np.float32(inputs), np.float32(labels)
     
     def __len__(self):
