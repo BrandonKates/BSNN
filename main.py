@@ -52,7 +52,7 @@ def main():
 #    criterion = nn.MSELoss() #TODO : make generic
     def criterion(x,y):
         return torch.sum(~torch.eq(x,y))
-    run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
+    run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.num_passes)
 
 if __name__ == '__main__':
     main()
