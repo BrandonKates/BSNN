@@ -41,14 +41,14 @@ def main():
     torch.manual_seed(1)
     train_data, test_data, train_loader, test_loader = get_data(args)
 
-    print("Using device: ", device)
-    print("Train Data Shape: ", train_data.data.shape)
-    print("Test Data Shape: ", train_data.targets.shape)
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = int(ceil(log(num_labels, 2)))
     model = construct_model(args, output_size, num_labels, device).to(device)
     print("Model Architecture: ", model)
+    print("Using device: ", device)
+    print("Train Data Shape: ", train_data.data.shape)
+    print("Test Data Shape: ", train_data.targets.shape)
 #   criterion = nn.MSELoss() #TODO : make generic
     criterion = lambda x,y: torch.sum(~torch.eq(x,y))
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.num_passes)
