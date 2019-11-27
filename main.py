@@ -26,13 +26,13 @@ def get_data(args):
     
     return train_data, test_data, train_loader, test_loader
 
-def construct_model(args, output_size, num_labels):
+def construct_model(args, output_size, num_labels, device='cpu'):
     hidden_layers = [int(i) for i in args.hidden_layers]
     if args.model == "linear":
         return linear.LinearModel(args.input_size, hidden_layers, output_size)
 
     elif args.model == "bernoulli":
-        return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels)
+        return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device)
 
 def main():
     args = Parser().parse()
@@ -47,11 +47,10 @@ def main():
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = int(ceil(log(num_labels, 2)))
-    model =  construct_model(args, output_size, num_labels).to(device)
-    print("Model: ", model)
-#    criterion = nn.MSELoss() #TODO : make generic
-    def criterion(x,y):
-        return torch.sum(~torch.eq(x,y))
+    model = construct_model(args, output_size, num_labels, device).to(device)
+    print("Model Architecture: ", model)
+#   criterion = nn.MSELoss() #TODO : make generic
+    criterion = lambda x,y: torch.sum(~torch.eq(x,y))
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.num_passes)
 
 if __name__ == '__main__':
