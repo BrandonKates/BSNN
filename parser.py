@@ -42,6 +42,7 @@ class Parser():
 		self.parser.add_argument('--plot-boundary', action='store_true',
 							help='Should we plot the boundary (only works for 2d data)')
 		self.parser.add_argument('--hidden-layers', nargs='+', help='Hidden Layer sizes (as a list)', required=True)
+		self.parser.add_argument('--set-classes', nargs='+', help='Specific Classes to use for train/inference (for mnist)', required=True)
 
 	def parse(self):
 		return self.parser.parse_args()
