@@ -3,7 +3,7 @@ from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import os
-
+ 
 class BernoulliLayer(nn.Module):
     def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
         super(BernoulliLayer, self).__init__()
@@ -21,9 +21,9 @@ class BernoulliLayer(nn.Module):
         l = self.lin(x)
         with torch.no_grad():
             p = torch.sigmoid(l)
-        o = 2* torch.bernoulli(p) - 1
+        o = torch.bernoulli(p)
         if with_grad:
-            grad_cor = (o+1)/2 - p
+            grad_cor = o - p
             #with torch.no_grad():
             self.last_squared_dif += (grad_cor*grad_cor).mean()
             # See https://r2rt.com/binary-stochastic-neurons-in-tensorflow.html

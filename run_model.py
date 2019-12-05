@@ -14,8 +14,13 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
-        output = model(inputs)
-        loss = criterion(output, labels)
+
+        avg_output = model(inputs)
+        
+        for _ in range(num_passes - 1):
+            avg_output += model(inputs, with_grad=False)
+        
+        loss = criterion(avg_output, labels)
         model.get_grad(loss)
         optimizer.step() 
         if batch_idx % args.log_interval == 0:
@@ -51,12 +56,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels, nu
     print("Confusion Matrix:\n", np.int_(conf_mat))
 
 
-def run_model(model, args, criterion, train_loader, test_loader, num_labels, device, num_passes):
+def run_model(model, args, criterion, train_loader, test_loader, num_labels, device, t_passes, i_passes):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
 
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size, num_passes)
-        test(args, model, device, test_loader, criterion, args.batch_size, num_labels, num_passes)
+        train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size, t_passes)
+        test(args, model, device, test_loader, criterion, args.batch_size, num_labels, i_passes)
         if epoch % 50 == 0:
             if (args.save_model):
                 torch.save(model.state_dict(), args.save_location + str(epoch))

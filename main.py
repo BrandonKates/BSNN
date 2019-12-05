@@ -51,7 +51,7 @@ def main():
     print("Train Data Shape: ", train_data.data.shape)
     print("Test Data Shape: ", train_data.targets.shape)
     criterion = nn.CrossEntropyLoss()
-    run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.num_passes)
+    run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.t_passes, args.i_passes)
 
 if __name__ == '__main__':
     main()
