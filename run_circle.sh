@@ -1,0 +1,3 @@
+#python -u main.py --no-cuda --plot-boundary --batch-size 16 --num-samples 10000 --dataset circle --model bernoulli  --num-labels 10 --epochs 1000 --hidden-layers 15 14 13 12 11  > ./log/baseline/circle10class_5layer.out 2> ./log/baseline/circle.err &
+python -u main.py --no-cuda --plot-boundary --batch-size 64 --num-samples 60000 --dataset circle --model bernoulli  --num-labels 10 --epochs 2000 --hidden-layers 20 19 18 17 16 15 14 13 12 11 > ./log/baseline/circle10class_10layer.out 2> ./log/baseline/circle.err &
+#python -u main.py --no-cuda --plot-boundary --batch-size 16 --num-samples 10000 --dataset circle --model bernoulli  --num-labels 10 --epochs 1000 --hidden-layers 200 100 50 25 15  > ./log/baseline/circle10class_5layer_large.out 2> ./log/baseline/circle.err &
