@@ -19,8 +19,8 @@ def get(test_split = 0.2, batch_size = 1, num_workers = 1, classes = [0,1,2,3,4,
     mnist_train = getClassSubset(mnist_train, classes)
     mnist_test = getClassSubset(mnist_test, classes)
 
-    train_loader = DataLoader(mnist_train, batch_size=batch_size, shuffle=True, num_workers=1)
-    test_loader  = DataLoader(mnist_test,  batch_size=1000, shuffle=True, num_workers=1)
+    train_loader = DataLoader(mnist_train, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_loader  = DataLoader(mnist_test,  batch_size=1000, shuffle=True, num_workers=num_workers)
 
     return mnist_train, mnist_test, train_loader, test_loader
 
