@@ -5,3 +5,4 @@ model.ckpt
 *.pyc
 *~
 *.jpg
+log
