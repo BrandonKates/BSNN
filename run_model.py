@@ -23,7 +23,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-def test(args, model, device, test_loader, criterion, batch_size, num_labels):
+def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
     conf_mat = np.zeros((num_labels, num_labels))
     model.eval()
     test_loss = 0
@@ -32,9 +32,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
         inputs, labels = inputs.float().to(device), labels.to(device)
         inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
-        output = model(inputs, with_grad = False)
-        test_loss += criterion(output, labels).sum().item() # sum up batch loss
-        pred = output.argmax(dim=1, keepdim=True)
+        passes_pred = []
+        for _ in range(num_passes):
+            output = model(inputs, with_grad = False)
+            test_loss += criterion(output, labels).sum().item() # sum up batch loss
+            passes_pred.append(output.argmax(dim=1, keepdim=True))
+        pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
         correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
         conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
@@ -53,7 +56,7 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size, num_passes)
-        test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
+        test(args, model, device, test_loader, criterion, args.batch_size, num_labels, num_passes)
         if epoch % 50 == 0:
             if (args.save_model):
                 torch.save(model.state_dict(), args.save_location + str(epoch))
