@@ -44,14 +44,13 @@ def main():
 
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
-    output_size = int(ceil(log(num_labels, 2)))
+    output_size = num_labels
     model = construct_model(args, output_size, num_labels, device).to(device)
     print("Model Architecture: ", model)
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
     print("Test Data Shape: ", train_data.targets.shape)
-#   criterion = nn.MSELoss() #TODO : make generic
-    criterion = lambda x,y: torch.sum(~torch.eq(x,y))
+    criterion = nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.num_passes)
 
 if __name__ == '__main__':

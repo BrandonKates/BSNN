@@ -14,42 +14,39 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
-        avg_loss = 0.0
-        for curr_pass in range(num_passes):
-            output = model(inputs)
-            loss = criterion(output, labels)
-            avg_loss += loss
-        avg_loss /= num_passes
-        model.get_grad(avg_loss)
+        output = model(inputs)
+        loss = criterion(output, labels)
+        model.get_grad(loss)
         optimizer.step() 
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), avg_loss.item()))
+                100. * batch_idx / len(train_loader), loss.item()))
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
-    with torch.no_grad():
-        conf_mat = np.zeros((num_labels, num_labels))
-        model.eval()
-        test_loss = 0
-        correct = 0
-        for inputs, labels in test_loader:
-            inputs, labels = inputs.float().to(device), labels.to(device)
-            inputs = inputs.flatten(start_dim=1)
-            labels = labels.long()
-            output = model(inputs, with_grad = False)
-            test_loss += criterion(output, labels).sum().item() # sum up batch loss
-            pred = output
-            correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
-            conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
+    conf_mat = np.zeros((num_labels, num_labels))
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for inputs, labels in test_loader:
+        inputs, labels = inputs.float().to(device), labels.to(device)
+        inputs = inputs.flatten(start_dim=1)
+        labels = labels.long()
+        output = model(inputs, with_grad = False)
+        test_loss += criterion(output, labels).sum().item() # sum up batch loss
+        pred = output.argmax(dim=1, keepdim=True)
+        correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
+        conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
-        test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_loader.dataset)
 
-        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
-        print("Confusion Matrix:\n", np.int_(conf_mat))
-    
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+            test_loss, correct, len(test_loader.dataset),
+            100. * correct / len(test_loader.dataset)
+        )
+    )
+    print("Confusion Matrix:\n", np.int_(conf_mat))
+
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device, num_passes):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
