@@ -27,8 +27,10 @@ function setup {
 # Circle 2 Class
 
 # Circle 10 Class
+TRAIN_PASSES=$1
+TEST_PASSES=$2
 DIR_="circle/circle_10class/"
-LAYERS_="20 15 10 5"
+LAYERS_="${@:2}"
 read LOG_SAVE_LOC CHECKPOINT_SAVE_LOC < <( setup $DIR_ $LAYERS_ )
 
 python -u main.py --no-cuda --plot-boundary --batch-size 16 --num-samples 12000 --dataset circle --model bernoulli \
@@ -38,5 +40,3 @@ python -u main.py --no-cuda --plot-boundary --batch-size 16 --num-samples 12000 
 --t-passes $TRAIN_PASSES \
 --i-passes $TEST_PASSES \
 > "${LOG_SAVE_LOC}.out" 2> "${LOG_SAVE_LOC}.err" &
-
-
