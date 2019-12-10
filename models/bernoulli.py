@@ -39,3 +39,16 @@ class BernoulliModel(nn.Module):
             return ans
         return func
  
+
+    def predict(self, device, num_passes):
+        def func(x):
+            print("PRED INPUT ", np.shape(x))
+            x = torch.from_numpy(x).type(torch.FloatTensor).to(device)
+            passes_pred = []
+            for i in range(num_passes):
+                output = self.forward(x, with_grad=False)
+                passes_pred.append(output.argmax(dim=1, keepdim=True))
+            pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
+            return pred
+        return func
+ 
