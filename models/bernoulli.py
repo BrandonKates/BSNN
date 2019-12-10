@@ -9,11 +9,13 @@ import argparse
 from math import pow
 
 class BernoulliModel(nn.Module):
-    def __init__(self, input_size, hidden_size_list, output_size, num_labels, device='cpu'):
+    def __init__(self, input_size, hidden_size_list, output_size, num_labels, device='cpu', orthogonal=True):
         super(BernoulliModel, self).__init__()
         sizes = [input_size] + hidden_size_list
         self.layers = nn.ModuleList([bernoulli.BernoulliLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
         self.linear_layer = nn.Linear(sizes[-1], output_size)
+        if orthogonal:
+            torch.nn.init.orthogonal_(self.linear_layer.weight)
         self.num_labels = num_labels
         self.device = device
 
