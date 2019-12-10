@@ -33,7 +33,7 @@ def construct_model(args, output_size, num_labels, device='cpu'):
         return linear.LinearModel(args.input_size, hidden_layers, output_size)
 
     elif args.model == "bernoulli":
-        return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device)
+        return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=args.orthogonal)
 
 def main():
     args = Parser().parse()
