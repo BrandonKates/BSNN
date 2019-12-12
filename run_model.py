@@ -14,19 +14,13 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
-
-        avg_output = model(inputs)
-        
-        for _ in range(num_passes - 1):
-            avg_output += model(inputs, with_grad=False)
-        
-        loss = criterion(avg_output, labels)
-        model.get_grad(loss)
+        losses = [criterion(model(inputs, with_grad = True), labels) for _ in range(num_passes)]
+        model.get_grad(losses)
         optimizer.step() 
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.item()))
+                100. * batch_idx / len(train_loader), np.mean(np.array(map(lambda t: t.data, losses)))))
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
     conf_mat = np.zeros((num_labels, num_labels))
