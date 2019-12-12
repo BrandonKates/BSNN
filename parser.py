@@ -15,7 +15,7 @@ class Parser():
                                     help='SGD momentum')
                 self.parser.add_argument('--no-cuda', action='store_true', default=False,
                                     help='disables CUDA training')
-                self.parser.add_argument('--orthogonal', action='store_true', default=False,
+                self.parser.add_argument('--no-orthogonal', action='store_true', default=False,
                                     help='initialise orthogonal weight')
                 self.parser.add_argument('--seed', type=int, default=1,
                                     help='random seed')
