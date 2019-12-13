@@ -19,7 +19,7 @@ class BernoulliModel(nn.Module):
         self.num_labels = num_labels
         self.device = device
 
-    def forward(self, x, with_grad=True):
+    def forward(self, x, with_grad):
         for layer in self.layers:
             x = layer(x, with_grad)
         return self.linear_layer(x)
@@ -27,17 +27,6 @@ class BernoulliModel(nn.Module):
     def get_grad(self, loss):
         for i in range(len(self.layers)):
             self.layers[i].get_grad(loss)
-
-    def predict(self, device):
-        def func(x):
-            print("PRED INPUT ", np.shape(x))
-            x = torch.from_numpy(x).type(torch.FloatTensor).to(device)
-            pred = F.softmax(self.forward(x), dim=1)
-            ans = []
-            for prediction in pred:
-                ans.append(prediction.argmax().item())
-            return ans
-        return func
  
 
     def predict(self, device, num_passes):
