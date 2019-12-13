@@ -20,7 +20,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), np.mean(np.array(map(lambda t: t.data, losses)))))
+                100. * batch_idx / len(train_loader), np.mean(np.array(list(map(lambda t: t.data, losses))))))
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
     conf_mat = np.zeros((num_labels, num_labels))
