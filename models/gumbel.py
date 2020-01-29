@@ -1,4 +1,4 @@
-from layers import bernoulli
+from layers import gumbel
 
 import torch
 from torch import nn
@@ -8,11 +8,11 @@ import os
 import argparse
 from math import pow
 
-class BernoulliModel(nn.Module):
+class GumbelModel(nn.Module):
     def __init__(self, input_size, hidden_size_list, output_size, num_labels, device='cpu', orthogonal=True):
-        super(BernoulliModel, self).__init__()
+        super(GumbelModel, self).__init__()
         sizes = [input_size] + hidden_size_list
-        self.layers = nn.ModuleList([bernoulli.BernoulliLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
+        self.layers = nn.ModuleList([gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
         self.linear_layer = nn.Linear(sizes[-1], output_size)
         if orthogonal:
             torch.nn.init.orthogonal_(self.linear_layer.weight)
@@ -25,9 +25,8 @@ class BernoulliModel(nn.Module):
         return self.linear_layer(x)
 
     def get_grad(self, losses):
-        for i in range(len(self.layers)):
-            self.layers[i].get_grad(losses)
- 
+        for loss in losses:
+            loss.backward()
 
     def predict(self, device, num_passes):
         def func(x):

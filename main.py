@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from dataloaders import linear_data, xor_data, mnist_data, circle_data, spiral_data
-from models import linear, bernoulli
+from models import linear, bernoulli, gumbel
 from parser import Parser
 from run_model import run_model
 from math import log, ceil
@@ -35,6 +35,10 @@ def construct_model(args, output_size, num_labels, device='cpu'):
     elif args.model == "bernoulli":
         return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=not args.no_orthogonal)
 
+    elif args.model == "gumbel":
+        return gumbel.GumbelModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=not args.no_orthogonal)
+
+    
 def main():
     args = Parser().parse()
     use_cuda = not args.no_cuda and torch.cuda.is_available()

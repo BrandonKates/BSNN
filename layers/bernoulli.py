@@ -20,7 +20,7 @@ class BernoulliLayer(nn.Module):
         self.squared_diff = []
 
     def forward(self, x, with_grad):
-        
+
         l = self.lin(x)
         with torch.no_grad():
             p = torch.sigmoid(l)
