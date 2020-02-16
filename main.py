@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from dataloaders import linear_data, xor_data, mnist_data, circle_data, spiral_data
+from dataloaders import circle_data, linear_data, xor_data, spiral_data, cifar10_data, mnist_data
 from models import linear, bernoulli, gumbel
 from parser import Parser
 from run_model import run_model
 from math import log, ceil
+
 
 def get_data(args):
     if args.dataset == 'linear':
@@ -24,7 +25,10 @@ def get_data(args):
 
     elif args.dataset == 'spiral':
         train_data, test_data, train_loader, test_loader = spiral_data.get(n=args.num_samples, test_split=.2,batch_size=args.batch_size)
-    
+
+    elif args.dataset == 'cifar10':
+        train_data, test_data, train_loader, test_loader = cifar10_data.get(args.batch_size, num_workers=2)
+
     return train_data, test_data, train_loader, test_loader
 
 def construct_model(args, output_size, num_labels, device='cpu'):
@@ -53,7 +57,7 @@ def main():
     print("Model Architecture: ", model)
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
-    print("Test Data Shape: ", train_data.targets.shape)
+    #print("Test Data Shape: ", train_data.targets.shape)
     criterion = nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.t_passes, args.i_passes)
 
