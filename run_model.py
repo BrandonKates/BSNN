@@ -3,25 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
+import sys
 from helpers import plot_decision_boundary
 
 from sklearn.metrics import confusion_matrix
 
 p_values = []
 
-def _log_model_stats(model, debug=True):
-    print('Final Layer Weights')
-    torch.set_printoptions(profile="full")
-    print(model.linear_layer.weight)
-    print('Final Layer Bias')
-    print(model.linear_layer.bias)
-    torch.set_printoptions(profile="default")
-    print('P values')
-    print(model.layers[-1].p_avg)
-    print('last layer activations')
-    print(torch.mv(model.linear_layer.weight.double() , model.layers[-1].p_avg))
-    if debug:
-        p_values.append(model.layers[-1].p_avg.data)
+def _log_model_stats(model):
+    print(torch.norm(model.layers[-1].lin.weight))
+
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, num_passes):
     model.train()
@@ -37,9 +28,10 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), np.mean(np.array(list(map(lambda t: t.data, losses))))))
-            
+
             _log_model_stats(model)
-    print (p_values)
+            
+    #print (p_values)
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
     conf_mat = np.zeros((num_labels, num_labels))
