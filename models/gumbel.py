@@ -13,9 +13,10 @@ class GumbelModel(nn.Module):
         super(GumbelModel, self).__init__()
         sizes = [input_size] + hidden_size_list
         self.layers = nn.ModuleList([gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
-        self.linear_layer = nn.Linear(sizes[-1], output_size)
+        self.linear_layer = nn.Linear(sizes[-1], output_size, bias=False)
         if orthogonal:
             torch.nn.init.orthogonal_(self.linear_layer.weight)
+            self.linear_layer.weight.requires_grad = False
         self.num_labels = num_labels
         self.device = device
 

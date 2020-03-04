@@ -27,7 +27,7 @@ def get_data(args):
         train_data, test_data, train_loader, test_loader = spiral_data.get(n=args.num_samples, test_split=.2,batch_size=args.batch_size)
 
     elif args.dataset == 'cifar10':
-        train_data, test_data, train_loader, test_loader = cifar10_data.get(args.batch_size, num_workers=2)
+        train_data, test_data, train_loader, test_loader = cifar10_data.get(args.batch_size, num_workers=0)
 
     return train_data, test_data, train_loader, test_loader
 
