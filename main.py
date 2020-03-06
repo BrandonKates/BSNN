@@ -6,6 +6,7 @@ from dataloaders import circle_data, linear_data, xor_data, spiral_data, cifar10
 from models import linear, bernoulli, gumbel
 from parser import Parser
 from run_model import run_model
+import sys
 from math import log, ceil
 
 
@@ -40,7 +41,10 @@ def construct_model(args, output_size, num_labels, device='cpu'):
         return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=not args.no_orthogonal)
 
     elif args.model == "gumbel":
-        return gumbel.GumbelModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=not args.no_orthogonal)
+        if args.temp == None:
+            print('Must provide --temp parameter')
+            sys.exit(-1)
+        return gumbel.GumbelModel(args.input_size, hidden_layers, output_size, num_labels, args.temp, device=device, orthogonal=not args.no_orthogonal)
 
     
 def main():

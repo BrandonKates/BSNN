@@ -17,14 +17,14 @@ class GumbelLayer(nn.Module):
         self.debug = debug
 
 
-    def forward(self, x, with_grad):
+    def forward(self, x, temp, with_grad):
         l = self.lin(x)
         # Change p to double so that gumbel_softmax func works
         delta = 1e-5
         p = torch.clamp(torch.sigmoid(l).double(), min=delta, max=1-delta)
         if self.debug:
             self.p_avg = 0.9*self.p_avg + 0.1*torch.mean(p, 0)
-        o = self.gumbel_softmax(p, 0.1)
+        o = self.gumbel_softmax(p, temp)
         # Change output back to float for the next layer's input
         return o.float()
 

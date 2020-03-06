@@ -27,6 +27,9 @@ class Parser():
                 self.parser.add_argument('--save-location', '-l', type=str, default='checkpoints/model.pt',
                                     help='Location to Save Model')
 
+                self.parser.add_argument('--temp', '-t', 
+                        help='temperature for softmax, required if using gumbel model')
+
 
 		# Data Arguments
                 self.parser.add_argument('--num-samples', '-n', type=int, default=100,help="Number of samples in dataset")

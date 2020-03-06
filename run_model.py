@@ -8,8 +8,6 @@ from helpers import plot_decision_boundary
 
 from sklearn.metrics import confusion_matrix
 
-p_values = []
-
 def _log_model_stats(model):
     print(torch.norm(model.layers[-1].lin.weight))
 
@@ -28,10 +26,6 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), np.mean(np.array(list(map(lambda t: t.data, losses))))))
-
-            _log_model_stats(model)
-            
-    #print (p_values)
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
     conf_mat = np.zeros((num_labels, num_labels))

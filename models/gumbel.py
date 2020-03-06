@@ -9,7 +9,7 @@ import argparse
 from math import pow
 
 class GumbelModel(nn.Module):
-    def __init__(self, input_size, hidden_size_list, output_size, num_labels, device='cpu', orthogonal=True):
+    def __init__(self, input_size, hidden_size_list, output_size, num_labels, temp, device='cpu', orthogonal=True):
         super(GumbelModel, self).__init__()
         sizes = [input_size] + hidden_size_list
         self.layers = nn.ModuleList([gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
@@ -19,10 +19,12 @@ class GumbelModel(nn.Module):
             self.linear_layer.weight.requires_grad = False
         self.num_labels = num_labels
         self.device = device
+        # TODO choose annealing schedules and implement as functions
+        self.temp=float(temp)
 
     def forward(self, x, with_grad):
         for layer in self.layers:
-            x = layer(x, with_grad)
+            x = layer(x, self.temp, with_grad)
         return self.linear_layer(x)
 
     def get_grad(self, losses):
