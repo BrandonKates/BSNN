@@ -1,3 +1,5 @@
+from math import exp, floor
+
 from layers import gumbel
 
 import torch
@@ -6,10 +8,9 @@ import torch.nn.functional as F
 import numpy as np
 import os
 import argparse
-from math import pow
 
 class GumbelModel(nn.Module):
-    def __init__(self, input_size, hidden_size_list, output_size, num_labels, temp, device='cpu', orthogonal=True):
+    def __init__(self, input_size, hidden_size_list, output_size, num_labels, temp, anneal_step=500, anneal_rate=1e-4, device='cpu', orthogonal=True):
         super(GumbelModel, self).__init__()
         sizes = [input_size] + hidden_size_list
         self.layers = nn.ModuleList([gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
@@ -19,12 +20,20 @@ class GumbelModel(nn.Module):
             self.linear_layer.weight.requires_grad = False
         self.num_labels = num_labels
         self.device = device
+        self.time_step = 0
+        self.anneal_step = anneal_step
+        self.anneal_rate = anneal_rate
         # TODO choose annealing schedules and implement as functions
-        self.temp=float(temp)
+        if temp == 'schedule':
+            self.temp = lambda step: max(.5, exp(-1*anneal_rate*step))
+        else:
+            self.temp= lambda step: float(temp) # ignore step
 
     def forward(self, x, with_grad):
+        self.time_step += 1
+        step = floor(self.time_step / self.anneal_step)
         for layer in self.layers:
-            x = layer(x, self.temp, with_grad)
+            x = layer(x, self.temp(step), with_grad)
         return self.linear_layer(x)
 
     def get_grad(self, losses):
