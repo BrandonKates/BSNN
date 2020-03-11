@@ -29,12 +29,14 @@ class GumbelModel(nn.Module):
         else:
             self.temp= lambda step: float(temp) # ignore step
 
-    def forward(self, x, with_grad):
+
+    def forward(self, x, with_grad=True):
         self.time_step += 1
         step = floor(self.time_step / self.anneal_step)
         for layer in self.layers:
             x = layer(x, self.temp(step), with_grad)
         return self.linear_layer(x)
+
 
     def get_grad(self, losses):
         for loss in losses:

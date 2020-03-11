@@ -4,17 +4,14 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import os
 from copy import deepcopy
-import numpy as np
 from torch import exp, log
  
 class GumbelLayer(nn.Module):
     def __init__(self, input_dim, output_dim, new_loss_importance = 0.1,
-            device="cpu", debug=True):
+            device="cpu"):
         super(GumbelLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=False)
         self.device = device
-        self.p_avg = torch.zeros(output_dim)
-        self.debug = debug
 
 
     def forward(self, x, temp, with_grad):
@@ -22,8 +19,6 @@ class GumbelLayer(nn.Module):
         # Change p to double so that gumbel_softmax func works
         delta = 1e-5
         p = torch.clamp(torch.sigmoid(l).double(), min=delta, max=1-delta)
-        if self.debug:
-            self.p_avg = 0.9*self.p_avg + 0.1*torch.mean(p, 0)
         o = self.gumbel_softmax(p, temp)
         # Change output back to float for the next layer's input
         return o.float()
@@ -35,8 +30,9 @@ class GumbelLayer(nn.Module):
         
         
     def sample_gumbel(self, input_size):
-        u = torch.from_numpy(np.random.uniform(0, 1, input_size))
-        return -log(-log(u))
+        with torch.no_grad():
+            u = torch.rand(input_size)
+            return -log(-log(u))
         
     def parameters(self):
         # Everythin else is not trainable
