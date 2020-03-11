@@ -7,8 +7,7 @@ from copy import deepcopy
 from torch import exp, log
  
 class GumbelLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1,
-            device="cpu"):
+    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
         super(GumbelLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=False)
         self.device = device
@@ -30,9 +29,8 @@ class GumbelLayer(nn.Module):
         
         
     def sample_gumbel(self, input_size):
-        with torch.no_grad():
-            u = torch.rand(input_size)
-            return -log(-log(u))
+        u = torch.rand(input_size)
+        return -log(-log(u))
         
     def parameters(self):
         # Everythin else is not trainable
