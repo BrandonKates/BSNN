@@ -34,6 +34,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         losses = [criterion(model(inputs), labels) for _ in range(num_passes)]
         model.get_grad(losses)
         optimizer.step() 
+        if hasattr(model, "step"):
+            model.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
