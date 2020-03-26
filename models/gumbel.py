@@ -28,6 +28,7 @@ class GumbelModel(nn.Module):
         if temp == 'schedule':
             self.tau = lambda : max(.5, 2*exp(-1*RATE*floor(self.time_step/STEP)))
         else:
+            temp = float(temp)
             self.tau = lambda: temp
 
 
