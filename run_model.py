@@ -28,7 +28,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         grid = torchvision.utils.make_grid(inputs)
         inputs, labels = inputs.float().to(device), labels.to(device)
-        inputs = inputs.flatten(start_dim=1)
+        #inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
         losses = [criterion(model(inputs), labels) for _ in range(num_passes)]

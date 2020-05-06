@@ -1,6 +1,6 @@
 from math import exp, floor
 
-from layers import gumbel
+from layers import gumbel, conv_layer, flatten
 
 import torch
 from torch import nn
@@ -16,8 +16,12 @@ class GumbelModel(nn.Module):
     def __init__(self, input_size, hidden_size_list, output_size, num_labels, temp, device='cpu', orthogonal=True):
         super(GumbelModel, self).__init__()
         sizes = [input_size] + hidden_size_list
-        self.layers = nn.ModuleList([gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device) for i in range(len(sizes)-1)])
-        self.linear_layer = nn.Linear(sizes[-1], output_size, bias=False)
+        module_list = []
+        for i in range(len(sizes)-1):
+            module_list.append(conv_layer.Conv2dLayer(sizes[i], sizes[i+1], device=device))
+        module_list.append(flatten.Flatten())
+        self.layers = nn.ModuleList(module_list)
+        self.linear_layer = nn.Linear(32*32*hidden_size_list[-1], output_size, bias=False)
         if orthogonal:
             torch.nn.init.orthogonal_(self.linear_layer.weight)
             self.linear_layer.weight.requires_grad = False
