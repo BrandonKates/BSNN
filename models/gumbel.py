@@ -4,10 +4,7 @@ from layers import gumbel, conv_layer, flatten
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 import numpy as np
-import os
-import argparse
 
 STEP = 1000
 RATE = 1e-5

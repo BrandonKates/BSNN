@@ -7,9 +7,9 @@ from copy import deepcopy
 from torch import exp, log
  
 class Conv2dLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, device="cpu"):
+    def __init__(self, in_channels, out_channels, kernel_size, device="cpu"):
         super(Conv2dLayer, self).__init__()
-        self.conv      = nn.Conv2d(input_dim,output_dim, kernel_size=1)
+        self.conv   = nn.Conv2d(in_channels, out_channels, kernel_size)
         self.device = device
 
 
