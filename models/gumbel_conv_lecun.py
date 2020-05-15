@@ -20,7 +20,7 @@ class GumbelConvLecunModel(nn.Module):
             nn.AvgPool2d(2),
             conv_layer.Conv2dLayer(6, 16, 5),
             nn.AvgPool2d(2),
-            conv_layer.Conv2dLayer(16, 120, 5),
+            conv_layer.Conv2dLayer(16, 120, 5, flatten=True),
             nn.Linear(120, 84) # TODO replace with linear Gumbel layer
         ]
         self.layers = nn.ModuleList(module_list)
@@ -39,9 +39,7 @@ class GumbelConvLecunModel(nn.Module):
         x = self.layers[2].forward(x, .5, with_grad)
         x = self.layers[3].forward(x)
         x = self.layers[4].forward(x, .5, with_grad)
-        print(x.shape)
         x = self.layers[5](x)
-        print(x.shape)
         x = self.linear_layer(x)
         return x
 
