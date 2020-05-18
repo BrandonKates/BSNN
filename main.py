@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from dataloaders import circle_data, linear_data, xor_data, spiral_data, cifar10_data, mnist_data
-from models import linear, bernoulli, gumbel, gumbel_conv_lecun
+from models import linear, bernoulli, gumbel, gumbel_conv_lecun, lenet5
 from parser import Parser
 from run_model import run_model
 import sys
@@ -22,7 +22,7 @@ def get_data(args):
 
     elif args.dataset in ['mnist', 'MNIST']:
         set_classes = [int(i) for i in args.set_classes] if args.set_classes else [0,1,2,3,4,5,6,7,8,9]
-        train_data, test_data, train_loader, test_loader = mnist_data.get(resize=True, test_split = 0.2, batch_size = args.batch_size, num_workers=1, classes=set_classes)
+        train_data, test_data, train_loader, test_loader = mnist_data.get(resize=args.resize_input, batch_size = args.batch_size)
 
     elif args.dataset == 'spiral':
         train_data, test_data, train_loader, test_loader = spiral_data.get(n=args.num_samples, test_split=.2,batch_size=args.batch_size)
@@ -48,6 +48,9 @@ def construct_model(args, output_size, num_labels, device='cpu'):
 
     elif args.model == 'gumbel-conv':
         return gumbel_conv_lecun.GumbelConvLecunModel(device=device,orthogonal=not args.no_orthogonal)
+
+    elif args.model == 'lenet5':
+        return lenet5.LeNet5(orthogonal = not args.no_orthogonal)
 
     
 def main():

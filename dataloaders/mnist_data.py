@@ -2,7 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets import MNIST
 from torchvision import transforms
 
-def get(resize=False,test_split = 0.2, batch_size = 1, num_workers = 1, classes = [0,1,2,3,4,5,6,7,8,9]):
+def get(resize=False,test_split=0.2,batch_size=1,num_workers=1,classes=[0,1,2,3,4,5,6,7,8,9]):
     mnist_transforms = [
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))

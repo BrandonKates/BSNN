@@ -17,14 +17,20 @@ class LinearModel(nn.Module):
             self.lin.append(nn.Linear(sizes[i], sizes[i+1], bias=True))
         self.lin = ListModule(*self.lin)
         
-    def forward(self, x):
-        for layer in self.lin:
-            x = layer(x)
+    def forward(self, x, with_grad=True):
+        if not with_grad:
+            with torch.no_grad():
+                for layer in self.lin:
+                    x = layer(x)
+        else:
+            for layer in self.lin:
+                x = layer(x)
+
         return x
 
-    def get_grad(self, loss):
-        for layer in self.lin:
-            layer.backward(loss)
+    def get_grad(self, losses):
+        for loss in losses:
+            loss.backward()
 
     
     def predict(self, device):

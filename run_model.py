@@ -28,7 +28,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         grid = torchvision.utils.make_grid(inputs)
         inputs, labels = inputs.float().to(device), labels.to(device)
-        #inputs = inputs.flatten(start_dim=1)
+        if args.flatten_input:
+            inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         optimizer.zero_grad()
         losses = [criterion(model(inputs), labels) for _ in range(num_passes)]
@@ -39,7 +40,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), np.mean(np.array(list(map(lambda t: t.data, losses))))))
+                100. * batch_idx / len(train_loader),
+                     np.mean(np.array(list(map(lambda t: t.item(), losses))))))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels, num_passes):
@@ -49,11 +51,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels, nu
     correct = 0
     for inputs, labels in test_loader:
         inputs, labels = inputs.float().to(device), labels.to(device)
-        inputs = inputs.flatten(start_dim=1)
+        if args.flatten_input:
+            inputs = inputs.flatten(start_dim=1)
         labels = labels.long()
         passes_pred = []
         for _ in range(num_passes):
-            output = model(inputs, with_grad = False)
+            output = model(inputs, with_grad=False)
             test_loss += criterion(output, labels).sum().item() # sum up batch loss
             passes_pred.append(output.argmax(dim=1, keepdim=True))
         pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
