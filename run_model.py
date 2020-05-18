@@ -78,7 +78,6 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 args.batch_size, t_passes)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels, 1)
-        cpu_stats()
         if epoch % 50 == 0:
             if (args.save_model):
                 torch.save(model.state_dict(), args.save_location + str(epoch))

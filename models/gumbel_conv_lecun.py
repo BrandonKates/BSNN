@@ -16,11 +16,11 @@ class GumbelConvLecunModel(nn.Module):
         super(GumbelConvLecunModel, self).__init__()
         # from linked paper top of page 4 and section 2.2
         module_list = [
-            conv_layer.Conv2dLayer(1, 6, 5),
+            conv_layer.Conv2dLayer(1, 6, 5, device=device),
             nn.AvgPool2d(2),
-            conv_layer.Conv2dLayer(6, 16, 5),
+            conv_layer.Conv2dLayer(6, 16, 5, device=device),
             nn.AvgPool2d(2),
-            conv_layer.Conv2dLayer(16, 120, 5, flatten=True),
+            conv_layer.Conv2dLayer(16, 120, 5, device=device, flatten=True),
             nn.Linear(120, 84) # TODO replace with linear Gumbel layer
         ]
         self.layers = nn.ModuleList(module_list)
@@ -47,4 +47,3 @@ class GumbelConvLecunModel(nn.Module):
     def get_grad(self, losses):
         for loss in losses:
             loss.backward()
-
