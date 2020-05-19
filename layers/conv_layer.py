@@ -35,7 +35,3 @@ class Conv2dLayer(nn.Module):
     def sample_gumbel(self, input_size):
         u = torch.rand(input_size).to(self.device)
         return -log(-log(u))
-        
-    def parameters(self):
-        # Everythin else is not trainable
-        return self.lin.parameters()

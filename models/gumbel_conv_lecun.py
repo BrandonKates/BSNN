@@ -12,8 +12,11 @@ class GumbelConvLecunModel(nn.Module):
     http://yann.lecun.com/exdb/publis/pdf/lecun-99.pdf
     Just using this to test out stochastic convolutions
     '''
-    def __init__(self, device='cpu', orthogonal=True):
+    def __init__(self, device='cpu',N=500,r=1e-5,orthogonal=True):
         super(GumbelConvLecunModel, self).__init__()
+        self.time_step = 0
+        self.N = N
+        self.r = r
         # from linked paper top of page 4 and section 2.2
         module_list = [
             conv_layer.Conv2dLayer(1, 6, 5, device=device),
@@ -21,7 +24,7 @@ class GumbelConvLecunModel(nn.Module):
             conv_layer.Conv2dLayer(6, 16, 5, device=device),
             nn.AvgPool2d(2),
             conv_layer.Conv2dLayer(16, 120, 5, device=device, flatten=True),
-            nn.Linear(120, 84) # TODO replace with linear Gumbel layer
+            gumbel.GumbelLayer(120, 84, device=device)
         ]
         self.layers = nn.ModuleList(module_list)
         # paper uses radial basis function classification layer, I will use
@@ -30,16 +33,24 @@ class GumbelConvLecunModel(nn.Module):
         if orthogonal:
             torch.nn.init.orthogonal_(self.linear_layer.weight)
         self.linear_layer.weight.requires_grad = False
-        # TODO temperature
+
+
+    def time_step(self):
+        time_step += 1
+
+
+    def _tau(self):
+        return max(.5, exp(-self.r*floor(self.time_step/self.N)))
 
 
     def forward(self, x, with_grad=True):
-        x = self.layers[0].forward(x, .5, with_grad)
-        x = self.layers[1].forward(x)
-        x = self.layers[2].forward(x, .5, with_grad)
-        x = self.layers[3].forward(x)
-        x = self.layers[4].forward(x, .5, with_grad)
-        x = self.layers[5](x)
+        temp = self._tau()
+        x = self.layers[0](x, temp, with_grad)
+        x = self.layers[1](x)
+        x = self.layers[2](x, temp, with_grad)
+        x = self.layers[3](x)
+        x = self.layers[4](x, temp, with_grad)
+        x = self.layers[5](x, temp, with_grad)
         x = self.linear_layer(x)
         return x
 
