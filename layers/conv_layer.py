@@ -14,13 +14,15 @@ class Conv2dLayer(nn.Module):
         self.flatten = flatten
 
 
-    def forward(self, x, temp, with_grad):
+    def forward(self, x, temp, with_grad, debug=False):
         l = self.conv(x)
         if self.flatten:
             l = l.reshape((l.shape[0], l.shape[1]))
         # Change p to double so that gumbel_softmax func works
         delta = 1e-5
         p = torch.clamp(torch.sigmoid(l).double(), min=delta, max=1-delta)
+        if debug:
+            print(p)
         o = self.gumbel_softmax(p, temp)
         # Change output back to float for the next layer's input
         return o.float()

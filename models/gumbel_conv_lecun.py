@@ -1,6 +1,7 @@
 from math import exp, floor
 
 from layers import gumbel, conv_layer
+import layers
 
 import numpy as np
 import torch
@@ -20,10 +21,15 @@ class GumbelConvLecunModel(nn.Module):
         # from linked paper top of page 4 and section 2.2
         module_list = [
             conv_layer.Conv2dLayer(1, 6, 5, device=device),
+            nn.Tanh(),
             nn.AvgPool2d(2),
+            nn.Tanh(),
             conv_layer.Conv2dLayer(6, 16, 5, device=device),
+            nn.Tanh(),
             nn.AvgPool2d(2),
+            nn.Tanh(),
             conv_layer.Conv2dLayer(16, 120, 5, device=device, flatten=True),
+            nn.Tanh(),
             gumbel.GumbelLayer(120, 84, device=device)
         ]
         self.layers = nn.ModuleList(module_list)
@@ -45,14 +51,14 @@ class GumbelConvLecunModel(nn.Module):
 
     def forward(self, x, with_grad=True):
         temp = self._tau()
-        x = self.layers[0](x, temp, with_grad)
-        x = self.layers[1](x)
-        x = self.layers[2](x, temp, with_grad)
-        x = self.layers[3](x)
-        x = self.layers[4](x, temp, with_grad)
-        x = self.layers[5](x, temp, with_grad)
-        x = self.linear_layer(x)
-        return x
+        for layer in self.layers:
+            if type(layer) == layers.conv_layer.Conv2dLayer:
+                x = layer(x, temp, with_grad)
+            elif type(layer) == layers.gumbel.GumbelLayer:
+                x = layer(x, temp, with_grad)
+            else:
+                x = layer(x)
+        return self.linear_layer(x)
 
 
     def get_grad(self, losses):

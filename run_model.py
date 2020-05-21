@@ -26,7 +26,7 @@ def cpu_stats():
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, num_passes):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
-        grid = torchvision.utils.make_grid(inputs)
+        #grid = torchvision.utils.make_grid(inputs)
         inputs, labels = inputs.float().to(device), labels.to(device)
         if args.flatten_input:
             inputs = inputs.flatten(start_dim=1)
