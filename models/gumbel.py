@@ -15,19 +15,18 @@ class GumbelModel(nn.Module):
         sizes = [input_size] + hidden_size_list
         module_list = []
         for i in range(len(sizes)-1):
-            module_list.append(conv_layer.Conv2dLayer(sizes[i], sizes[i+1], device=device))
-        module_list.append(flatten.Flatten())
+            module_list.append(gumbel.GumbelLayer(sizes[i], sizes[i+1], device=device))
         self.layers = nn.ModuleList(module_list)
-        self.linear_layer = nn.Linear(32*32*hidden_size_list[-1], output_size, bias=False)
+        self.linear_layer = nn.Linear(hidden_size_list[-1], output_size, bias=False)
         if orthogonal:
             torch.nn.init.orthogonal_(self.linear_layer.weight)
-            self.linear_layer.weight.requires_grad = False
+        self.linear_layer.weight.requires_grad = False
         self.num_labels = num_labels
         self.device = device
         self.time_step = 0
 
         if temp == 'schedule':
-            self.tau = lambda : max(.5, 2*exp(-1*RATE*floor(self.time_step/STEP)))
+            self.tau = lambda : max(.5, exp(-1*RATE*floor(self.time_step/STEP)))
         else:
             temp = float(temp)
             self.tau = lambda: temp
@@ -36,9 +35,11 @@ class GumbelModel(nn.Module):
     def step(self):
         self.time_step += 1
 
+
     def forward(self, x, with_grad=True):
+        temp = self.tau()
         for layer in self.layers:
-            x = layer(x, self.tau(), with_grad)
+            x = layer(x, temp, with_grad)
         return self.linear_layer(x)
 
 
