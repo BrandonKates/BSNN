@@ -9,12 +9,6 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from psutil import Process
 
-from helpers import plot_decision_boundary
-
-
-def _log_model_stats(model):
-    print(torch.norm(model.layers[-1].lin.weight))
-
 
 def cpu_stats():
     pid = getpid()

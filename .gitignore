@@ -6,3 +6,4 @@ model.ckpt
 *~
 *.jpg
 log
+MNIST_DATA
