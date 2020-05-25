@@ -12,7 +12,7 @@ class LinearDataset(Dataset):
     """Linearly Separable Dataset."""
 
     def __init__(self, n, d, sigma=0.15):
-        self.inputs, self.labels = self.linearData(n, d, sigma)
+        self.data, self.targets = self.linearData(n, d, sigma)
         
     def linearData(self, n, d, sigma):
         mu_1 = -0.5
@@ -27,12 +27,12 @@ class LinearDataset(Dataset):
         return np.float32(inputs), np.int_(labels)
     
     def __len__(self):
-        return len(self.labels)
+        return len(self.targets)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        return self.inputs[idx], self.labels[idx]
+        return self.data[idx], self.targets[idx]
 
 def get(n=100, d=2, sigma=0.15, test_split=0.2, batch_size=1, num_workers=1):
     train_n = int(n * (1-test_split))

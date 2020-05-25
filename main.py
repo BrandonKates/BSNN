@@ -1,96 +1,75 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import argparse
 import numpy as np
 
-from dataloaders import linear, xor
-from models import linear_bernoulli, linear_binomial, xor_bernoulli, xor_model
+from dataloaders import circle_data, linear_data, xor_data, spiral_data, cifar10_data, mnist_data
+from models import linear, bernoulli, gumbel, gumbel_conv_lecun, lenet5
 from parser import Parser
+from run_model import run_model
+import sys
+from math import log, ceil
 
+
+def get_data(args):
+    if args.dataset == 'linear':
+        train_data, test_data, train_loader, test_loader = linear_data.get(n=args.num_samples, d=args.input_size, sigma=0.15, test_split=0.2, batch_size=args.batch_size, num_workers=1)
+        
+    if args.dataset == 'circle':
+        train_data, test_data, train_loader, test_loader = circle_data.get(n=args.num_samples, d=args.input_size, num_labels=args.num_labels, test_split=0.2, batch_size=args.batch_size, num_workers=1)
+        
+    elif args.dataset in ['xor','XOR']:
+        train_data, test_data, train_loader, test_loader = xor_data.get(n=args.num_samples, d=args.input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers=1)
+
+    elif args.dataset in ['mnist', 'MNIST']:
+        set_classes = [int(i) for i in args.set_classes] if args.set_classes else [0,1,2,3,4,5,6,7,8,9]
+        train_data, test_data, train_loader, test_loader = mnist_data.get(resize=args.resize_input, batch_size = args.batch_size)
+
+    elif args.dataset == 'spiral':
+        train_data, test_data, train_loader, test_loader = spiral_data.get(n=args.num_samples, test_split=.2,batch_size=args.batch_size)
+
+    elif args.dataset == 'cifar10':
+        train_data, test_data, train_loader, test_loader = cifar10_data.get(args.batch_size, num_workers=0)
+
+    return train_data, test_data, train_loader, test_loader
+
+def construct_model(args, output_size, num_labels, device='cpu'):
+    hidden_layers = [int(i) for i in args.hidden_layers]
+    if args.model == "linear":
+        return linear.LinearModel(args.input_size, hidden_layers, output_size)
+
+    elif args.model == "bernoulli":
+        return bernoulli.BernoulliModel(args.input_size, hidden_layers, output_size, num_labels, device=device, orthogonal=not args.no_orthogonal)
+
+    elif args.model == "gumbel":
+        if args.temp == None:
+            print('Must provide --temp parameter')
+            sys.exit(-1)
+        return gumbel.GumbelModel(args.input_size, hidden_layers, output_size, num_labels, args.temp, device=device, orthogonal=not args.no_orthogonal)
+
+    elif args.model == 'gumbel-conv':
+        return gumbel_conv_lecun.GumbelConvLecunModel(device=device,orthogonal=not args.no_orthogonal)
+
+    elif args.model == 'lenet5':
+        return lenet5.LeNet5(orthogonal = not args.no_orthogonal)
+
+    
 def main():
     args = Parser().parse()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
-    
-    torch.manual_seed(args.seed)
+    torch.manual_seed(1)
+    train_data, test_data, train_loader, test_loader = get_data(args)
 
-    if args.dataset == 'linear':
-        n = 100
-        input_size = 2
-        hidden_size = 1
-        num_classes = 2
-        num_epochs = 200
-        batch_size = 1
-        learning_rate = 0.001
-
-
-        train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
-
-        linear_bernoulli.run_model(train, test, 1, input_size, hidden_size,
-                num_classes, num_epochs, batch_size, learning_rate, device)
-
-
-    elif args.dataset == 'binomial':
-        n = 100
-        input_size = 2
-        hidden_size = 1
-        num_classes = 2
-        num_epochs = 200
-        batch_size = 1
-        learning_rate = 0.001
-        binomial_n = 1
-
-        train_data, test_data, train, test = linear.get(n, num_classes, 0.15, 0.2, 1, 1)
-
-        # result = linear_binomial.run_model(train, test, 1, input_size, hidden_size,
-        #         num_classes, num_epochs, batch_size, learning_rate, device, binomial_n)
-
-        # print('Accuracy of the network on linearly separable data: {} %'.format(result))
-
-
-        all_results = []
-        all_results.append(['num_epochs','binomial_n','result'])
-        for num_epochs_i in [1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90] + list(range(100,1000,50)):
-            #print("Num_Epochs: ", num_epochs_i)
-            for binomial_n_j in range(1,50):
-                result = linear_binomial.run_model(train, test, 1, input_size, hidden_size,
-                    num_classes, num_epochs_i, batch_size, learning_rate, device, binomial_n_j)
-                # 
-                print('Accuracy of the network on linearly separable data where num_epochs {1} and n_binom {2}: {0} %'.format(result,num_epochs_i,binomial_n_j), )
-                # 
-                all_results.append([num_epochs_i,binomial_n_j, result])
-            np.savetxt("results/results.csv", all_results, delimiter=",", fmt='%s')
-  
-
-        np.savetxt("FinalResults.csv", all_results, delimiter=",", fmt='%s')
-
-    elif args.dataset == 'xor' or args.dataset == 'XOR':
-        n=200
-        input_size = 2
-        hidden_size = 10
-        num_classes = 1
-
-        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
-
-        criterion = nn.MSELoss()
-        xor_bernoulli.run_model(
-            args, criterion, train_loader, test_loader, 
-            device, input_size, hidden_size, num_classes)
-
-    elif args.dataset == 'xor-model':
-        n=200
-        input_size = 2
-        hidden_size = 10
-        num_classes = 1
-
-        train_data, test_data, train_loader, test_loader = xor.get(n=n, d=input_size, sigma = 0.25, test_split = 0.2, batch_size = args.batch_size, num_workers = 1)
-
-        criterion = nn.CrossEntropyLoss()
-        xor_model.run_model(
-            args, criterion, train_loader, test_loader, 
-            device, input_size, hidden_size, num_classes)       
+    # labels should be a whole number from [0, num_classes - 1]
+    num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
+    output_size = num_labels
+    model = construct_model(args, output_size, num_labels, device).to(device)
+    print("Model Architecture: ", model)
+    print("Using device: ", device)
+    print("Train Data Shape: ", train_data.data.shape)
+    #print("Test Data Shape: ", train_data.targets.shape)
+    criterion = nn.CrossEntropyLoss()
+    run_model(model, args, criterion, train_loader, test_loader, num_labels, device, args.t_passes, args.i_passes)
 
 if __name__ == '__main__':
     main()
