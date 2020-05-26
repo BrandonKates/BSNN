@@ -20,8 +20,7 @@ def cpu_stats():
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
-        inputs, labels = inputs.float().to(device), labels.to(device)
-        labels = labels.long()
+        inputs, labels = inputs.float().to(device), labels.long().to(device)
         optimizer.zero_grad()
         losses = [criterion(model(inputs), labels)]
         model.get_grad(losses)
@@ -41,8 +40,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
     test_loss = 0
     correct = 0
     for inputs, labels in test_loader:
-        inputs, labels = inputs.float().to(device), labels.to(device)
-        labels = labels.long()
+        inputs, labels = inputs.float().to(device), labels.long().to(device)
         passes_pred = []
         output = model(inputs, with_grad=False)
         test_loss += criterion(output, labels).sum().item() # sum up batch loss
