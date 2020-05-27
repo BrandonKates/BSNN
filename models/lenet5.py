@@ -38,8 +38,3 @@ class LeNet5(nn.Module):
         else:
             with torch.no_grad():
                 return self._forward(x)
-
-
-    def get_grad(self, losses):
-        for loss in losses:
-            loss.backward()

@@ -22,16 +22,15 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.long().to(device)
         optimizer.zero_grad()
-        losses = [criterion(model(inputs), labels)]
-        model.get_grad(losses)
+        loss = criterion(model(inputs), labels)
+        loss.backward()
         optimizer.step() 
         if hasattr(model, "step"):
             model.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),
-                     np.mean(np.array(list(map(lambda t: t.item(), losses))))))
+                100. * batch_idx / len(train_loader),loss.item()))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -46,7 +45,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
         test_loss += criterion(output, labels).sum().item() # sum up batch loss
         passes_pred.append(output.argmax(dim=1, keepdim=True))
         pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
-        correct += pred.eq(labels.view_as(pred)).sum().item() #torch.all(output.eq(labels)).sum().item()
+        correct += pred.eq(labels.view_as(pred)).sum().item()
         conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
     test_loss /= len(test_loader.dataset)

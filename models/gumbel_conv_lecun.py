@@ -36,8 +36,8 @@ class GumbelConvLecunModel(nn.Module):
         self.linear_layer.weight.requires_grad = False
 
 
-    def time_step(self):
-        time_step += 1
+    def step(self):
+        self.time_step += 1
 
 
     def _tau(self):
@@ -62,7 +62,3 @@ class GumbelConvLecunModel(nn.Module):
         else:
             with torch.no_grad():
                 return self._forward(x, with_grad)
-
-    def get_grad(self, losses):
-        for loss in losses:
-            loss.backward()
