@@ -40,12 +40,12 @@ class GumbelConvLecunModel(nn.Module):
         self.time_step += 1
 
 
-    def _tau(self):
+    def tau(self):
         return max(.5, exp(-self.r*floor(self.time_step/self.N)))
 
 
     def _forward(self, x, with_grad):
-        temp = self._tau()
+        temp = self.tau()
         for layer in self.layers:
             if type(layer) == layers.conv_layer.Conv2dLayer:
                 x = layer(x, temp, with_grad)

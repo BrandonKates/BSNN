@@ -25,8 +25,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         loss = criterion(model(inputs), labels)
         loss.backward()
         optimizer.step() 
-        if hasattr(model, "step"):
-            model.step()
+        # adjust gumbel temperature 
+        model.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
@@ -63,8 +63,7 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
 
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, criterion,
-                args.batch_size)
+        train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
         if epoch % 50 == 0:
             if (args.save_model):

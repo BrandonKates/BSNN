@@ -43,10 +43,6 @@ class GumbelModel(nn.Module):
         return self.linear_layer(x)
 
 
-    def get_grad(self, losses):
-        for loss in losses:
-            loss.backward()
-
     def predict(self, device, num_passes):
         def func(x):
             print("PRED INPUT ", np.shape(x))
