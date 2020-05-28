@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from dataloaders import cifar10_data, mnist_data
-from models import gumbel_conv_lecun, lenet5, densenet_k12_L40
+from models import gumbel_conv_lecun, lenet5, densenet_k12_L40, gumbel_conv_vgg
 from parser import Parser
 from run_model import run_model
 
@@ -22,6 +22,10 @@ def construct_model(args, device='cpu'):
     orthogonal = not args.no_orthogonal
     if args.model == 'gumbel-conv':
         return gumbel_conv_lecun.GumbelConvLecunModel(
+                device=device,
+                orthogonal=orthogonal)
+    if args.model == 'vgg':
+        return gumbel_conv_vgg.GumbelConvVGGModel(
                 device=device,
                 orthogonal=orthogonal)
 
