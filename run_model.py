@@ -28,9 +28,10 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         # adjust gumbel temperature 
         model.step()
         if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f} Temp: {:6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item()))
+                100. * batch_idx / len(train_loader),loss.item()),
+                     model.tau().item())
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
