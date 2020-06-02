@@ -6,10 +6,14 @@ import os
 def plot_log(log_files, out_file, display, window_size):
     for log_file in log_files:
         with open(log_file, 'r') as f:
-            losses = []
+            losses, accuracies = [], []
             for line in f.readlines():
                 if 'Loss:' in line:
                     losses.append(float(line[line.find('Loss:') + len('Loss:'):line.find('\tTemp:')]))
+                if 'Accuracy:' in line:
+                    accuracies.append(float(line[line.find('Accuracy:')
+                        + len('Accuracy:'):line.find('/')])/10000)
+
 
         if window_size > 1 and window_size <= len(losses):
             ll = len(losses)
@@ -23,9 +27,14 @@ def plot_log(log_files, out_file, display, window_size):
 
             losses = avgs
 
-        plt.plot(losses)
+        #plt.plot(losses)
+        plt.plot(accuracies)
 
     plt.legend(list(map(lambda f: os.path.basename(f), log_files)))
+    plt.axes().set_title('Accuracy over Epochs')
+    plt.axes().set_xlabel('Epochs')
+    plt.axes().set_ylabel('Test Accuracy')
+
     if out_file:
         plt.savefig(out_file+'.png')
     if display:
