@@ -41,24 +41,6 @@ class SimpleConv(nn.Module):
             with torch.no_grad():
                 return self._forward(x, with_grad)
 
-    def print_grads(self):
-        if self.stochastic:
-            grads = [
-                torch.norm(self.conv1.conv.weight.grad).item(),
-                torch.norm(self.conv2.conv.weight.grad).item(),
-                torch.norm(self.fc1.lin.weight.grad).item(),
-                torch.norm(self.fc2.lin.weight.grad).item()
-            ]
-        else:
-            grads = [
-                torch.norm(self.conv1.weight.grad).item(),
-                torch.norm(self.conv2.weight.grad).item(),
-                torch.norm(self.fc1.weight.grad).item(),
-                torch.norm(self.fc2.weight.grad).item()
-            ]
-
-        print(', '.join(map(lambda i: str(i), grads)))
-
 
     def _forward(self, x, with_grad):
         if self.stochastic:

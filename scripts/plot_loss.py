@@ -4,17 +4,12 @@ import argparse
 
 def plot_log(log_file, out_file, display):
     with open(log_file, 'r') as f:
-        losses, temps = [], []
+        losses = []
         for line in f.readlines():
             if 'Loss:' in line:
-                losses.append(float(line[line.find('Loss:') + len('Loss:'):]))
-            if 'Temp:' in line:
-                temps.append(
-                    float(line[line.find('Temp:') + 5:line.find('\n')])
-                )
+                losses.append(float(line[line.find('Loss:') + len('Loss:'):line.find('\tTemp:')]))
 
     plt.plot(losses)
-    plt.plot(temps)
 
     if out_file:
         plt.savefig(out_file+'.png')

@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from dataloaders import cifar10_data, mnist_data
-from models import gumbel_conv_lecun, lenet5, densenet_k12_L40, gumbel_conv_vgg, simple_conv
+from models import lenet5, simpleconv
 from parser import Parser
 from run_model import run_model
 
@@ -20,25 +20,15 @@ def get_data(args):
 
 def construct_model(args, device='cpu'):
     orthogonal = not args.no_orthogonal
-    if args.model == 'gumbel-conv':
-        return gumbel_conv_lecun.GumbelConvLecunModel(
-                device=device,
-                orthogonal=orthogonal)
+    stochastic = not args.deterministic
 
-    if args.model == 'simple-conv':
-        return simple_conv.SimpleConv(device=device,
-                orthogonal=orthogonal,stochastic=True)
+    if args.model == 'lenet5':
+        return lenet5.LeNet5(
+                device=device, orthogonal=orthogonal, stochastic=stochastic)
 
-    if args.model == 'vgg':
-        return gumbel_conv_vgg.GumbelConvVGGModel(
-                device=device,
-                orthogonal=orthogonal)
-
-    elif args.model == 'lenet5':
-        return lenet5.LeNet5(orthogonal=orthogonal)
-
-    elif args.model == 'densenet':
-        return densenet_k12_L40.DenseNet(device=device)
+    if args.model == 'simpleconv':
+        return simpleconv.SimpleConv(
+                device=device,orthogonal=orthogonal,stochastic=stochastic)
 
     
 def main():
