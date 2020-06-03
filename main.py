@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from dataloaders import cifar10_data, mnist_data
-from models import lenet5, simpleconv
+from models import lenet5, simpleconv, vgg
 from parser import Parser
 from run_model import run_model
 
@@ -29,6 +29,9 @@ def construct_model(args, device='cpu'):
     if args.model == 'simpleconv':
         return simpleconv.SimpleConv(
                 device=device,orthogonal=orthogonal,stochastic=stochastic)
+
+    if args.model == 'vgg':
+        return vgg.vgg11(stochastic, device)
 
     
 def main():
