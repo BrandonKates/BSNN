@@ -1,3 +1,5 @@
+from math import sqrt, exp, floor
+
 import torch
 import torch.nn as nn
 
@@ -28,7 +30,7 @@ class VGG(nn.Module):
             for m in self.modules():
                 if isinstance(m, nn.Conv2d):
                     n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                    m.weight.data.normal_(0, math.sqrt(2./n))
+                    m.weight.data.normal_(0, sqrt(2./n))
                     m.bias.data.zero_()
 
 
@@ -44,7 +46,7 @@ class VGG(nn.Module):
         if with_grad:
             return self._forward(x, with_grad)
         else:
-            with torch.nograd():
+            with torch.no_grad():
                 return self._forward(x, with_grad)
 
 
@@ -97,7 +99,7 @@ def vgg11(stochastic, device):
     return VGG(make_layers(cfg['A'], stochastic, device), 
             device=device, stochastic=stochastic)
 
-
+'''
 def vgg11_bn():
     return VGG(make_layers(cfg['A'], batch_norm=True))
 
@@ -124,3 +126,4 @@ def vgg19():
 
 def vgg19_bn():
     return VGG(make_layers(cfg['E'], batch_norm=True))
+'''
