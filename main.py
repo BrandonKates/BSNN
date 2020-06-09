@@ -1,9 +1,11 @@
+import sys 
+
 import torch
 import torch.nn as nn
 import numpy as np
 
-from dataloaders import cifar10_data, mnist_data
-from models import lenet5, simpleconv, vgg
+from dataloaders import mnist_data, cifar10_data
+from models import lenet5, simpleconv, vgg, complexconv
 from parser import Parser
 from run_model import run_model
 
@@ -26,12 +28,22 @@ def construct_model(args, device='cpu'):
         return lenet5.LeNet5(
                 device=device, orthogonal=orthogonal, stochastic=stochastic)
 
-    if args.model == 'simpleconv':
+    elif args.model == 'simpleconv':
         return simpleconv.SimpleConv(
                 device=device,orthogonal=orthogonal,stochastic=stochastic)
 
-    if args.model == 'vgg':
+    elif args.model == 'vgg':
         return vgg.vgg11(stochastic, device)
+
+    elif args.model == 'complexconv':
+        return complexconv.ComplexConv(
+            device=device, 
+            orthogonal=orthogonal,
+            stochastic=stochastic)
+
+    else:
+        print(f"{args.model} is not a valid model")
+        sys.exit(-1)
 
     
 def main():

@@ -24,7 +24,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         optimizer.zero_grad()
         loss = criterion(model(inputs), labels)
         loss.backward()
-        #model.print_grads()
+#        model.print_grad()
         optimizer.step() 
         # adjust gumbel temperature 
         model.step()
@@ -62,7 +62,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    #optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=.9)
+    #optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=.9, weight_decay=5e-4)
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
