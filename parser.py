@@ -46,6 +46,10 @@ class Parser():
                         default=False, 
                         help='Run deterministic variant, if one exists')
 
+                self.parser.add_argument('--print-grads', '-g',
+                action='store_true', default=False, 
+                help='print layer gradients if model implements `print_grads` ')
+
                 self.parser.add_argument('--batch-size', type=int, default=16,
 		    help='input batch size for training')
 

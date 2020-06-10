@@ -24,7 +24,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         optimizer.zero_grad()
         loss = criterion(model(inputs), labels)
         loss.backward()
-#        model.print_grad()
+        if args.print_grads:
+            model.print_grads()
         optimizer.step() 
         # adjust gumbel temperature 
         model.step()

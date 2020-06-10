@@ -36,6 +36,28 @@ class ComplexConv(nn.Module):
         if orthogonal:
             torch.nn.init.orthogonal_(self.classifier.weight)
 
+
+    def print_grads(self):
+        if self.stochastic:
+            grads = [
+                self.conv1.conv.weight.grad,
+                self.conv2.conv.weight.grad,
+                self.conv3.conv.weight.grad,
+                self.fc1.lin.weight.grad,
+                self.fc2.lin.weight.grad
+            ]
+        else:
+            grads = [
+                self.conv1.weight.grad,
+                self.conv2.weight.grad,
+                self.conv3.weight.grad,
+                self.fc1.weight.grad,
+                self.fc2.weight.grad
+            ]
+
+        print(list(map(lambda g: torch.norm(g).item(), grads)))
+
+
     def forward(self, x, with_grad=True):
         if with_grad:
             return self._forward(x, with_grad)
