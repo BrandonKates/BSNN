@@ -29,24 +29,14 @@ class GumbelLayer(nn.Module):
         
         
     def sample_gumbel(self, input_size):
-        u = torch.rand(input_size).to(self.device)
+        #u = torch.rand(input_size).to(self.device)
+        if self.device == 'cpu':
+            u = torch.FloatTensor(input_size).uniform_()
+        else:
+            u = torch.cuda.FloatTensor(input_size).uniform_()
         return -log(-log(u))
+
         
     def parameters(self):
         # Everythin else is not trainable
         return self.lin.parameters()
-    
-'''    
-    def predict(self,x):
-        x = torch.from_numpy(x).type(torch.FloatTensor)
-        #Apply softmax to output. 
-        pred = F.softmax(self.forward(x), dim=0)
-        ans = []
-        #Pick the class with maximum weight
-        for t in pred:
-            if t[0]>t[1]:
-                ans.append(-1)
-            else:
-                ans.append(1)
-        return torch.tensor(ans)
-'''

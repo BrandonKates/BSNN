@@ -39,5 +39,9 @@ class Conv2dLayer(nn.Module):
         
         
     def sample_gumbel(self, input_size):
-        u = torch.rand(input_size).to(self.device)
+        #u = torch.rand(input_size).to(self.device)
+        if self.device == 'cpu':
+            u = torch.FloatTensor(input_size).uniform_()
+        else:
+            u = torch.cuda.FloatTensor(input_size).uniform_()
         return -log(-log(u))

@@ -63,6 +63,5 @@ def main():
     criterion = nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
 
-
 if __name__ == '__main__':
     main()
