@@ -7,14 +7,17 @@ from copy import deepcopy
 from torch import exp, log
  
 class GumbelLayer(nn.Module):
-    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu"):
+    def __init__(self, input_dim, output_dim, new_loss_importance = 0.1, device="cpu", normalize=True):
         super(GumbelLayer, self).__init__()
         self.lin      = nn.Linear(input_dim,output_dim, bias=False)
         self.device = device
-
+        self.batchnorm = nn.BatchNorm1d(output_dim)
+        self.normalize = normalize
 
     def forward(self, x, temp, with_grad):
         l = self.lin(x)
+        if self.normalize:
+            l = self.batchnorm(l)
         # Change p to double so that gumbel_softmax func works
         delta = 1e-5
         p = torch.clamp(torch.sigmoid(l).double(), min=delta, max=1-delta)
@@ -30,7 +33,7 @@ class GumbelLayer(nn.Module):
         
     def sample_gumbel(self, input_size):
         #u = torch.rand(input_size).to(self.device)
-        if self.device == 'cpu':
+        if self.device == torch.device('cpu'):
             u = torch.FloatTensor(input_size).uniform_()
         else:
             u = torch.cuda.FloatTensor(input_size).uniform_()

@@ -8,17 +8,20 @@ from torch import exp, log
  
 class Conv2dLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, 
-                stride=1, padding=0, bias=True, flatten=False, device="cpu"):
+                 stride=1, padding=0, bias=True, flatten=False, device="cpu", normalize=True):
         super(Conv2dLayer, self).__init__()
         self.conv   = nn.Conv2d(
                 in_channels, out_channels, kernel_size, stride=stride, 
                 padding=padding, bias=bias)
         self.device = device
         self.flatten = flatten
-
+        self.normalize = normalize
+        self.batchnorm = nn.BatchNorm2d(out_channels)
 
     def forward(self, x, temp, with_grad, debug=False):
         l = self.conv(x)
+        if self.normalize:
+            l = self.batchnorm(l)
         if self.flatten:
             l = l.view(l.shape[0], -1)
             #l = l.reshape((l.shape[0], l.shape[1]))
@@ -40,7 +43,7 @@ class Conv2dLayer(nn.Module):
         
     def sample_gumbel(self, input_size):
         #u = torch.rand(input_size).to(self.device)
-        if self.device == 'cpu':
+        if self.device == torch.device('cpu'):
             u = torch.FloatTensor(input_size).uniform_()
         else:
             u = torch.cuda.FloatTensor(input_size).uniform_()
