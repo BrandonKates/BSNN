@@ -53,6 +53,9 @@ class Parser():
                 self.parser.add_argument('--batch-size', type=int, default=16,
 		    help='input batch size for training')
 
+                self.parser.add_argument('--inference-passes', '-i', default=1,
+                        help='number of forward passes during test')
+
 
 	def parse(self):
 		return self.parser.parse_args()
