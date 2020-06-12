@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from layers import conv_layer, gumbel
 
 class SimpleConv(nn.Module):
-    def __init__(self, device='cpu',N=500,r=1e-5,orthogonal=True,stochastic=True):
+    def __init__(self, normalize, device='cpu',N=500,r=1e-5,stochastic=True):
         super(SimpleConv, self).__init__()
         self.device = device
         self.N = N
@@ -16,10 +16,12 @@ class SimpleConv(nn.Module):
         self.stochastic = stochastic
 
         if self.stochastic:
-            self.conv1 = conv_layer.Conv2dLayer(3,6,5, device=device)
-            self.conv2 = conv_layer.Conv2dLayer(6,16,5, device=device)
-            self.fc1 = gumbel.GumbelLayer(16*5*5,120, device=device)
-            self.fc2 = gumbel.GumbelLayer(120, 84, device=device)
+            kwargs = {'device': device, 'normalize': normalize}
+
+            self.conv1 = conv_layer.Conv2dLayer(3,6,5, **kwargs)
+            self.conv2 = conv_layer.Conv2dLayer(6,16,5, **kwargs)
+            self.fc1 = gumbel.GumbelLayer(16*5*5,120, **kwargs)
+            self.fc2 = gumbel.GumbelLayer(120, 84, **kwargs)
         else:
             self.conv1 = nn.Conv2d(3,6,5)
             self.conv2 = nn.Conv2d(6,16,5)
@@ -31,8 +33,7 @@ class SimpleConv(nn.Module):
         if self.stochastic:
             self.classifier.weight.requires_grad = False
 
-        if orthogonal:
-            torch.nn.init.orthogonal_(self.classifier.weight)
+        torch.nn.init.orthogonal_(self.classifier.weight)
 
     def forward(self, x, with_grad=True):
         if with_grad:

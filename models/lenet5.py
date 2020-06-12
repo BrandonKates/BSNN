@@ -13,26 +13,29 @@ class LeNet5(nn.Module):
     http://yann.lecun.com/exdb/publis/pdf/lecun-99.pdf
     Just using this to test out stochastic convolutions
     '''
-    def __init__(self,device='cpu',N=500,r=1e-5,orthogonal=True,stochastic=True):
+    def __init__(self,normalize,device='cpu',N=500,r=1e-5,stochastic=True):
         super(LeNet5, self).__init__()
         self.time_step = 0
         self.N = N
         self.r = r
         self.stochastic = stochastic
         if stochastic:
+            kwargs = {'device': device, 'normalize': normalize}
+
             # from linked paper top of page 4 and section 2.2
             module_list = [
-                conv_layer.Conv2dLayer(1, 6, 5, device=device),
+                conv_layer.Conv2dLayer(1, 6, 5, **kwargs),
                 nn.AvgPool2d(2),
-                conv_layer.Conv2dLayer(6, 16, 5, device=device),
+                conv_layer.Conv2dLayer(6, 16, 5, **kwargs),
                 nn.AvgPool2d(2),
-                conv_layer.Conv2dLayer(16, 120, 5, device=device, flatten=True),
-                gumbel.GumbelLayer(120, 84, device=device)
+                conv_layer.Conv2dLayer(16, 120, 5, 
+                    normalize=normalize, device=device, flatten=True),
+                gumbel.GumbelLayer(120, 84, **kwargs)
             ]
             self.linear_layer = nn.Linear(84, 10, bias=False)
-            if orthogonal:
-                torch.nn.init.orthogonal_(self.linear_layer.weight)
-            self.linear_layer.weight.requires_grad = False
+            torch.nn.init.orthogonal_(self.linear_layer.weight)
+            if stochastic:
+                self.linear_layer.weight.requires_grad = False
 
         else:
             module_list = [

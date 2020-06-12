@@ -21,25 +21,19 @@ def get_data(args):
 
 
 def construct_model(args, device='cpu'):
-    orthogonal = not args.no_orthogonal
-    stochastic = not args.deterministic
+    kwargs = {
+        'device': device,
+        'stochastic': not args.deterministic
+    }
 
     if args.model == 'lenet5':
-        return lenet5.LeNet5(
-                device=device, orthogonal=orthogonal, stochastic=stochastic)
+        return lenet5.LeNet5(args.normalize, **kwargs)
 
     elif args.model == 'simpleconv':
-        return simpleconv.SimpleConv(
-                device=device,orthogonal=orthogonal,stochastic=stochastic)
-
-    elif args.model == 'vgg':
-        return vgg.vgg11(stochastic, device)
+        return simpleconv.SimpleConv(args.normalize, **kwargs)
 
     elif args.model == 'complexconv':
-        return complexconv.ComplexConv(
-            device=device, 
-            orthogonal=orthogonal,
-            stochastic=stochastic)
+        return complexconv.ComplexConv(args.normalize, **kwargs)
 
     else:
         print(f"{args.model} is not a valid model")
@@ -60,6 +54,7 @@ def main():
     print("Model Architecture: ", model)
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
+    print("Normalize layer outputs?: ", args.normalize)
     criterion = nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
 

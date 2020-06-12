@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from layers import conv_layer, gumbel
 
 class ComplexConv(nn.Module):
-    def __init__(self, device='cpu',N=500,r=1e-5,orthogonal=True,stochastic=True):
+    def __init__(self, normalize, device='cpu',N=500,r=1e-5,stochastic=True):
         super(ComplexConv, self).__init__()
         self.device = device
         self.N = N
@@ -16,12 +16,14 @@ class ComplexConv(nn.Module):
         self.stochastic = stochastic
 
         if self.stochastic:
-            self.conv1 = conv_layer.Conv2dLayer(3,64,3, device=device)
-            self.conv2 = conv_layer.Conv2dLayer(64,128,3, device=device)
-            self.conv3 = conv_layer.Conv2dLayer(128, 256, 3, device=device)
+            kwargs = {'device': device, 'normalize': normalize}
+
+            self.conv1 = conv_layer.Conv2dLayer(3,64,3, **kwargs)
+            self.conv2 = conv_layer.Conv2dLayer(64,128,3, **kwargs)
+            self.conv3 = conv_layer.Conv2dLayer(128, 256, 3, **kwargs)
             self.pool = nn.AvgPool2d(2, 2)
-            self.fc1 = gumbel.GumbelLayer(64*4*4,128, device=device)
-            self.fc2 = gumbel.GumbelLayer(128, 256, device=device)
+            self.fc1 = gumbel.GumbelLayer(64*4*4,128, **kwargs)
+            self.fc2 = gumbel.GumbelLayer(128, 256, **kwargs)
         else:
             self.conv1 = nn.Conv2d(3,64, 3)
             self.conv2 = nn.Conv2d(64,128,3)
@@ -33,8 +35,7 @@ class ComplexConv(nn.Module):
         self.classifier = nn.Linear(256, 10, bias=False)
         self.classifier.weight.requires_grad = False
 
-        if orthogonal:
-            torch.nn.init.orthogonal_(self.classifier.weight)
+        torch.nn.init.orthogonal_(self.classifier.weight)
 
 
     def print_grads(self):
@@ -75,7 +76,7 @@ class ComplexConv(nn.Module):
 
             out = out.view(-1, 64 * 4 * 4)
             return self.classifier(self.fc2(
-                self.fc1(out, temp, with_grad),
+                    self.fc1(out, temp, with_grad),
                 temp, with_grad))
         else:
             out = self.pool(F.relu(self.conv1(x)))

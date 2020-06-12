@@ -56,6 +56,9 @@ class Parser():
                 self.parser.add_argument('--inference-passes', '-i', default=1,
                         help='number of forward passes during test')
 
+                self.parser.add_argument('--normalize', '-n', default=False,
+                    action='store_true', help='batch norm, if model allows')
+
 
 	def parse(self):
 		return self.parser.parse_args()
