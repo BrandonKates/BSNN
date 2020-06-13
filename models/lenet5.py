@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from layers import gumbel
+import layers
 
 
 class LeNet5(nn.Module):
@@ -18,12 +18,12 @@ class LeNet5(nn.Module):
 
             # from linked paper top of page 4 and section 2.2
             module_list = [
-                gumbel.Conv2d(1, 6, 5, *args),
+                layers.Conv2d(1, 6, 5, *args),
                 nn.AvgPool2d(2),
-                gumbel.Conv2d(6, 16, 5, *args),
+                layers.Conv2d(6, 16, 5, *args),
                 nn.AvgPool2d(2),
-                gumbel.Conv2d(16, 120, 5, *args),
-                gumbel.Linear(120, 84, *args)
+                layers.Conv2d(16, 120, 5, *args),
+                layers.Linear(120, 84, *args)
             ]
             self.linear_layer = nn.Linear(84, 10, bias=False)
             torch.nn.init.orthogonal_(self.linear_layer.weight)

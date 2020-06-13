@@ -1,11 +1,7 @@
-import sys 
-
 import torch
-import torch.nn as nn
-import numpy as np
 
-from dataloaders import mnist_data, cifar10_data
-from models import lenet5, simpleconv, vgg, complexconv
+from dataloaders import cifar10, mnist
+from models import lenet5, simpleconv, complexconv
 from parser import Parser
 from run_model import run_model
 
@@ -14,10 +10,10 @@ def get_data(args):
     if args.dataset == 'mnist':
         resize = args.resize_input
         batch_size = args.batch_size
-        return mnist_data.get(resize=resize, batch_size=batch_size)
+        return mnist(resize=resize, batch_size=batch_size)
 
     elif args.dataset == 'cifar10':
-        return cifar10_data.get(args.batch_size, num_workers=0)
+        return cifar10(args.batch_size, num_workers=0)
 
 
 def main():
@@ -46,7 +42,7 @@ def main():
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
     print("Normalize layer outputs?: ", args.normalize)
-    criterion = nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
 
 if __name__ == '__main__':

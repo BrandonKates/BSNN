@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers import gumbel
+import layers
 
 class ComplexConv(nn.Module):
     def __init__(self, normalize, stochastic, device):
@@ -13,12 +13,12 @@ class ComplexConv(nn.Module):
         if self.stochastic:
             args = [device, normalize]
 
-            self.conv1 = gumbel.Conv2d(3,64,3, *args)
-            self.conv2 = gumbel.Conv2d(64,128,3, *args)
-            self.conv3 = gumbel.Conv2d(128, 256, 3, *args)
+            self.conv1 = layers.Conv2d(3,64,3, *args)
+            self.conv2 = layers.Conv2d(64,128,3, *args)
+            self.conv3 = layers.Conv2d(128, 256, 3, *args)
             self.pool = nn.AvgPool2d(2, 2)
-            self.fc1 = gumbel.Linear(64*4*4,128, *args)
-            self.fc2 = gumbel.Linear(128, 256, *args)
+            self.fc1 = layers.Linear(64*4*4,128, *args)
+            self.fc2 = layers.Linear(128, 256, *args)
         else:
             self.conv1 = nn.Conv2d(3,64, 3)
             self.conv2 = nn.Conv2d(64,128,3)

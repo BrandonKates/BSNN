@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers import gumbel
+import layers
 
 class SimpleConv(nn.Module):
     def __init__(self, normalize, stochastic, device):
@@ -13,10 +13,10 @@ class SimpleConv(nn.Module):
         if self.stochastic:
             args = [device, normalize]
 
-            self.conv1 = gumbel.Conv2d(3,6,5, *args)
-            self.conv2 = gumbel.Conv2d(6,16,5, *args)
-            self.fc1 = gumbel.Linear(16*5*5,120, *args)
-            self.fc2 = gumbel.Linear(120, 84, *args)
+            self.conv1 = layers.Conv2d(3,6,5, *args)
+            self.conv2 = layers.Conv2d(6,16,5, *args)
+            self.fc1 = layers.Linear(16*5*5,120, *args)
+            self.fc2 = layers.Linear(120, 84, *args)
         else:
             self.conv1 = nn.Conv2d(3,6,5)
             self.conv2 = nn.Conv2d(6,16,5)
