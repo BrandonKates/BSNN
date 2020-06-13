@@ -20,37 +20,28 @@ def get_data(args):
         return cifar10_data.get(args.batch_size, num_workers=0)
 
 
-def construct_model(args, device='cpu'):
-    kwargs = {
-        'device': device,
-        'stochastic': not args.deterministic
-    }
-
-    if args.model == 'lenet5':
-        return lenet5.LeNet5(args.normalize, **kwargs)
-
-    elif args.model == 'simpleconv':
-        return simpleconv.SimpleConv(args.normalize, **kwargs)
-
-    elif args.model == 'complexconv':
-        return complexconv.ComplexConv(args.normalize, **kwargs)
-
-    else:
-        print(f"{args.model} is not a valid model")
-        sys.exit(-1)
-
-    
 def main():
     args = Parser().parse()
+
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
+
     torch.manual_seed(args.seed)
+
     train_data, test_data, train_loader, test_loader = get_data(args)
 
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = num_labels
-    model = construct_model(args, device).to(device)
+
+    init_args = [args.normalize, not args.deterministic, device]
+    models = {
+        'lenet5': lenet5.LeNet5,
+        'simpleconv': simpleconv.SimpleConv,
+        'complexconv': complexconv.ComplexConv
+    }
+    model = models[args.model](*init_args).to(device)
+
     print("Model Architecture: ", model)
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)

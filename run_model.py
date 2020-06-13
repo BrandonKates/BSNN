@@ -30,9 +30,9 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         # adjust gumbel temperature 
         model.step()
         if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item(), model.tau()))
+                100. * batch_idx / len(train_loader),loss.item()))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -45,7 +45,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
             inputs, labels = inputs.float().to(device), labels.long().to(device)
             passes_pred = []
             for _ in range(args.inference_passes):
-                output = model(inputs, with_grad=False)
+                output = model(inputs)
                 test_loss += criterion(output, labels).sum().item() # sum up batch loss
                 passes_pred.append(output.argmax(dim=1, keepdim=True))
             pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
