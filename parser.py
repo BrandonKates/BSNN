@@ -18,8 +18,10 @@ class Parser():
                 self.parser.add_argument('--momentum', type=float, default=0.5,
                                     help='SGD momentum')
 
-                self.parser.add_argument('--no-cuda', action='store_true', default=False,
+                self.parser.add_argument('--cpu', action='store_true', default=False,
                                     help='disables CUDA training')
+                self.parser.add_argument('--gpu', type=int, default=0,
+                        help='index of GPU to use')
 
                 self.parser.add_argument('--resize-input', action='store_true', 
                                         default=False)

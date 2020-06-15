@@ -19,8 +19,8 @@ def get_data(args):
 def main():
     args = Parser().parse()
 
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu")
+    use_cuda = not args.cpu and torch.cuda.is_available()
+    device = torch.device(f"cuda:{args.gpu}" if use_cuda else "cpu")
 
     torch.manual_seed(args.seed)
 

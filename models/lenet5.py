@@ -53,9 +53,6 @@ class LeNet5(nn.Module):
         if self.stochastic:
             for i in filter(lambda i: i % 2 == 0, range(len(self.layers))):
                 self.layers[i].step()
-                
-        else:
-            return
 
 
     def forward(self, x):

@@ -7,3 +7,5 @@ model.ckpt
 *.jpg
 MNIST_DATA
 CIFAR10_DATA
+scripts/*.err
+scripts/*.log

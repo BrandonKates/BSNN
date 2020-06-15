@@ -12,16 +12,13 @@ class _GumbelLayer(nn.Module):
         '''
         inner:
             pytorch module subclass instance used as deterministic inner class
-        output_argname: 
-            string name of 'inner' layer's output dim kwarg, used to initialize
-            batchnorm layer if `normalize`=True
+        N: gumbel softmax hyperparameter, see paper
+        r: gumbel softmax hyperparameter, see paper
         device: 
             cpu or gpu. Needed for gumbel sample, would be nice to make
             obselete
         norm:
            batch norm object
-        **kwargs:
-            used to create instance of inner
         '''
         super(_GumbelLayer, self).__init__()
         self.inner = inner
@@ -75,7 +72,7 @@ class _GumbelLayer(nn.Module):
         if self.device == torch.device('cpu'):
             u = torch.FloatTensor(input_size).uniform_()
         else:
-            u = torch.cuda.FloatTensor(input_size).uniform_()
+            u = torch.FloatTensor(input_size).to(self.device).uniform_()
         return -log(-log(u))
 
 
