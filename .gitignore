@@ -5,4 +5,7 @@ model.ckpt
 *.pyc
 *~
 *.jpg
-log
+MNIST_DATA
+CIFAR10_DATA
+scripts/*.err
+scripts/*.log

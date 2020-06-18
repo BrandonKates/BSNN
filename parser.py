@@ -5,53 +5,59 @@ class Parser():
                 self.parser = argparse.ArgumentParser(description='Train BSNN Model')
                 self.parser.add_argument('--dataset', '-d', type=str, required=True, 
                                     help='which dataset do you want to train on?')
+
                 self.parser.add_argument('--model', '-m', type=str, required=True, 
                                     help='which model do you want to run?')
+
                 self.parser.add_argument('--epochs', type=int, default=100,
                                     help='number of epochs to train (default: 100)')
+
                 self.parser.add_argument('--lr', type=float, default=0.01,
                                     help='learning rate (default: 0.01)')
+
                 self.parser.add_argument('--momentum', type=float, default=0.5,
                                     help='SGD momentum')
-                self.parser.add_argument('--no-cuda', action='store_true', default=False,
+
+                self.parser.add_argument('--cpu', action='store_true', default=False,
                                     help='disables CUDA training')
+                self.parser.add_argument('--gpu', type=int, default=0,
+                        help='index of GPU to use')
+
                 self.parser.add_argument('--resize-input', action='store_true', 
                                         default=False)
-                self.parser.add_argument('--flatten-input',
-                                        action='store_true', default=False)
-                self.parser.add_argument('--no-orthogonal', action='store_true', default=False,
-                                    help='initialise orthogonal weight')
+
                 self.parser.add_argument('--seed', type=int, default=1,
                                     help='random seed')
+
                 self.parser.add_argument('--log-interval', type=int, default=10,
                                     help='how many batches to wait before logging training status')
 
                 self.parser.add_argument('--save-model', '-s', action='store_true', default=False,
                                     help='For Saving the current Model')
+
                 self.parser.add_argument('--save-location', '-l', type=str, default='checkpoints/model.pt',
                                     help='Location to Save Model')
 
                 self.parser.add_argument('--temp', '-t', 
                         help='temperature for softmax, required if using gumbel model')
 
+                self.parser.add_argument('--deterministic', action='store_true', 
+                        default=False, 
+                        help='Run deterministic variant, if one exists')
 
-		# Data Arguments
-                self.parser.add_argument('--num-samples', '-n', type=int, default=100,help="Number of samples in dataset")
-                self.parser.add_argument('--num-labels', type=int, default=2, 
-							help="Number of classes in dataset")
+                self.parser.add_argument('--print-grads', '-g',
+                action='store_true', default=False, 
+                help='print layer gradients if model implements `print_grads` ')
+
                 self.parser.add_argument('--batch-size', type=int, default=16,
 		    help='input batch size for training')
-                self.parser.add_argument('--test-batch-size', type=int, default=1000,
-		    help='input batch size for testing')
-                self.parser.add_argument('--input-size', type=int, default=2,
-					help='input size of data')
-                self.parser.add_argument('--t-passes', type=int, default=1,
-					help='Number of forward passes in training')
-                self.parser.add_argument('--i-passes', type=int, default=1,help='Number of forward passes in inference')
-                self.parser.add_argument('--plot-boundary', action='store_true',
-					help='Should we plot the boundary (only works for 2d data)')
-                self.parser.add_argument('--hidden-layers', nargs='+', help='Hidden Layer sizes (as a list)', default=[], required=False)
-                self.parser.add_argument('--set-classes', nargs='+',help='Specific Classes to use for train/inference (for mnist)', required=False)
+
+                self.parser.add_argument('--inference-passes', '-i', default=10,
+                        help='number of forward passes during test')
+
+                self.parser.add_argument('--normalize', '-n', default=False,
+                    action='store_true', help='batch norm, if model allows')
+
 
 	def parse(self):
 		return self.parser.parse_args()
