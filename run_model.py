@@ -35,21 +35,29 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
                 100. * batch_idx / len(train_loader),loss.item()))
 
 
-def test(args, model, device, test_loader, criterion, batch_size, num_labels):
+def test(args, model, device, test_loader, criterion, batch_size, num_labels,save_misclassified):
     conf_mat = np.zeros((num_labels, num_labels))
     model.eval()
     test_loss = 0
     correct = 0
+    misclassified = None
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
+            print(f"labels shape before `view_as`: {labels.shape}")
             passes_pred = []
             for _ in range(args.inference_passes):
                 output = model(inputs)
                 test_loss += criterion(output, labels).sum().item() # sum up batch loss
                 passes_pred.append(output.argmax(dim=1, keepdim=True))
             pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
-            correct += pred.eq(labels.view_as(pred)).sum().item()
+            metrics = pred.eq(labels.view_as(pred))
+            correct += metrics.sum().item()
+            wrong = ~metrics
+            if misclassified is None and save_misclassified:
+                misclassified = inputs[wrong]
+            elif save_misclassified:
+                misclassified = torch.cat((misclassified, inputs[wrong]))
             conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
     test_loss /= len(test_loader.dataset)
@@ -61,6 +69,10 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
     )
     print("Confusion Matrix:\n", np.int_(conf_mat))
 
+    if save_misclassified:
+        for im in range(misclassified.shape[0]):
+            torchvision.utils.save_image(misclassified[im], f"misclassified/{im}.png")
+
 
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
@@ -69,7 +81,8 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
-        test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
+        test(args, model, device, test_loader, criterion, args.batch_size,
+                num_labels, epoch==args.epochs)
         if epoch % 50 == 0:
             if (args.save_model):
                 torch.save(model.state_dict(), args.save_location + str(epoch))
