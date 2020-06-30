@@ -1,7 +1,7 @@
 import torch
 
 from dataloaders import cifar10, mnist
-from models import lenet5, simpleconv, complexconv
+from models import lenet5, simpleconv, complexconv, linear
 from parser import Parser
 from run_model import run_model
 
@@ -34,7 +34,8 @@ def main():
     models = {
         'lenet5': lenet5.LeNet5,
         'simpleconv': simpleconv.SimpleConv,
-        'complexconv': complexconv.ComplexConv
+        'complexconv': complexconv.ComplexConv,
+        'linear': linear.Linear
     }
     model = models[args.model](*init_args).to(device)
 

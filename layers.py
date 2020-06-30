@@ -42,7 +42,7 @@ class _GumbelLayer(nn.Module):
         return max(.5, math.exp(-self.r*math.floor(self.time_step/self.N)))
 
 
-    def forward(self, x):
+    def forward(self, x, return_p=False):
         l = self.inner(x)
         l = self.norm(l)
         # Change p to double so that gumbel_softmax func works
@@ -50,6 +50,9 @@ class _GumbelLayer(nn.Module):
         p = torch.clamp(torch.sigmoid(l).double(), min=delta, max=1-delta)
         o = self.sample(p)
         # Change output back to float for the next layer's input
+        if return_p:
+            return p, o.float()
+
         return o.float()
 
 

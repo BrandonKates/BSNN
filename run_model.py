@@ -44,7 +44,6 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels,sav
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
-            print(f"labels shape before `view_as`: {labels.shape}")
             passes_pred = []
             for _ in range(args.inference_passes):
                 output = model(inputs)
@@ -67,11 +66,16 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels,sav
             100. * correct / len(test_loader.dataset)
         )
     )
-    print("Confusion Matrix:\n", np.int_(conf_mat))
+    print("Confusion Matrix:\n", np.int_(conf_mat)) 
+    if save_misclassified:
+        for idx in range(misclassified.shape[0]):
+            model(misclassified[idx], return_p=True)
 
+    '''
     if save_misclassified:
         for im in range(misclassified.shape[0]):
             torchvision.utils.save_image(misclassified[im], f"misclassified/{im}.png")
+    '''
 
 
 
