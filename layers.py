@@ -90,3 +90,11 @@ class Conv2d(_GumbelLayer):
         super(Conv2d, self).__init__(inner, N, r, device, norm_obj)
 
 
+class RU(_GumbelLayer):
+    def __init__(self, output_dim , device, N=500, r=1e-5):
+        inner = nn.Identity()
+        norm_obj = nn.SyncBatchNorm(output_dim)
+        super(RU, self).__init__(inner, N, r, device, norm_obj)
+
+
+

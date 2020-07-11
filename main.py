@@ -1,7 +1,7 @@
 import torch
 
 from dataloaders import cifar10, mnist
-from models import lenet5, simpleconv, complexconv
+from models import lenet5, simpleconv, complexconv, resnet
 from parser import Parser
 from run_model import run_model
 
@@ -30,13 +30,18 @@ def main():
     num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = num_labels
 
-    init_args = [args.normalize, not args.deterministic, device]
-    models = {
-        'lenet5': lenet5.LeNet5,
-        'simpleconv': simpleconv.SimpleConv,
-        'complexconv': complexconv.ComplexConv
-    }
-    model = models[args.model](*init_args).to(device)
+    if 'resnet' in args.model:
+        constructor = getattr(resnet, args.model)
+        model = constructor(not args.deterministic, device).to(device)
+
+    else:
+        init_args = [args.normalize, not args.deterministic, device]
+        models = {
+            'lenet5': lenet5.LeNet5,
+            'simpleconv': simpleconv.SimpleConv,
+            'complexconv': complexconv.ComplexConv
+        }
+        model = models[args.model](*init_args).to(device)
 
     print("Model Architecture: ", model)
     print("Using device: ", device)

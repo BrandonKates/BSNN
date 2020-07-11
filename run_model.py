@@ -27,8 +27,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         if args.print_grads:
             model.print_grads()
         optimizer.step() 
-        # adjust gumbel temperature 
-        model.step()
+        if hasattr(model, 'step'): # adjust gumbel temperature 
+            model.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),

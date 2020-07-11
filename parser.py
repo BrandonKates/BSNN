@@ -52,7 +52,7 @@ class Parser():
                 self.parser.add_argument('--batch-size', type=int, default=16,
 		    help='input batch size for training')
 
-                self.parser.add_argument('--inference-passes', '-i', default=10,
+                self.parser.add_argument('--inference-passes', '-i', type=int, default=10,
                         help='number of forward passes during test')
 
                 self.parser.add_argument('--normalize', '-n', default=False,
