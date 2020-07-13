@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
-from torchvision.datasets import CIFAR10, MNIST
+from torchvision.datasets import CIFAR10, MNIST, SVHN
 from torchvision import transforms
 
 def mnist(resize=False, test_split=0.2, batch_size=1, num_workers=1):
@@ -41,3 +41,19 @@ def cifar10(batch_size, num_workers=1):
                             num_workers=num_workers)
 
     return trainset, testset, trainloader, testloader
+
+
+def svhn(batch_size, num_workers=1):
+    ts = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[.4377, .4438, .4782],
+                          std=[.1282, .1315, .1123])])
+    trainset = SVHN('./SVHN', transform=ts, download=True)
+    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True,
+                            num_workers=num_workers)
+    testset = SVHN('./SVHN', split='test', download=True, transform=ts)
+    testloader = DataLoader(testset, batch_size=batch_size, shuffle=True,
+        num_workers=num_workers)
+
+    return trainset, testset, trainloader, testloader
+
