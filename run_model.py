@@ -30,9 +30,9 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         if hasattr(model, 'step'): # adjust gumbel temperature 
             model.step()
         if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item()))
+                100. * batch_idx / len(train_loader),loss.item(), model.avg_temp()))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -65,10 +65,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
+    #lr_schedule = optim.lr_scheduler.LambdaLR(optimizer, lambda e: .1 if e >= 11 else 1)
     #optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=.9, weight_decay=5e-4)
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
+        #lr_schedule.step()
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
         if epoch % 50 == 0:
             if (args.save_model):

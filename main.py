@@ -1,6 +1,6 @@
 import torch
 
-from dataloaders import cifar10, mnist
+from dataloaders import cifar10, mnist, svhn
 from models import lenet5, simpleconv, complexconv, resnet
 from parser import Parser
 from run_model import run_model
@@ -15,6 +15,9 @@ def get_data(args):
     elif args.dataset == 'cifar10':
         return cifar10(args.batch_size, num_workers=0)
 
+    elif args.dataset == 'svhn':
+        return svhn(args.batch_size, num_workers=0)
+
 
 def main():
     args = Parser().parse()
@@ -27,7 +30,7 @@ def main():
     train_data, test_data, train_loader, test_loader = get_data(args)
 
     # labels should be a whole number from [0, num_classes - 1]
-    num_labels = int(max(max(train_data.targets), max(test_data.targets))) + 1
+    num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = num_labels
 
     if 'resnet' in args.model:
