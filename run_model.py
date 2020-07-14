@@ -9,6 +9,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from psutil import Process
 
+from optim import JangScheduler
+
 
 def cpu_stats():
     pid = getpid()
@@ -17,18 +19,17 @@ def cpu_stats():
     print('memory GB:', memoryUse)
 
 
-def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size):
+def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.long().to(device)
         optimizer.zero_grad()
         loss = criterion(model(inputs), labels)
         loss.backward()
-        if args.print_grads:
-            model.print_grads()
         optimizer.step() 
         # adjust gumbel temperature 
-        model.step()
+        if temp_schedule:
+            temp_schedule.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
@@ -65,10 +66,14 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
+    temp_schedule = JangScheduler(model.temperatures(), 500, 1e-5, .5)
+    print(temp_schedule.time_step)
+
     #optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=.9, weight_decay=5e-4)
 
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
+        train(args, model, device, train_loader, optimizer, epoch, criterion,
+                args.batch_size, temp_schedule)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
         if epoch % 50 == 0:
             if (args.save_model):

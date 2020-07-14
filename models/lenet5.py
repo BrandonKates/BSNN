@@ -49,10 +49,15 @@ class LeNet5(nn.Module):
         self.layers = nn.ModuleList(module_list)
 
 
-    def step(self):
+    def temperatures(self):
         if self.stochastic:
-            for i in filter(lambda i: i % 2 == 0, range(len(self.layers))):
-                self.layers[i].step()
+            stoch_layers = []
+            for i in range(0,len(self.layers), 2):
+                stoch_layers.append(self.layers[i])
+            stoch_layers.append(self.layers[5])
+            return list(map(lambda _: _.temp, stoch_layers))
+        else:
+            return []
 
 
     def forward(self, x):
