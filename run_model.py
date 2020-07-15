@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
+import math
 from sklearn.metrics import confusion_matrix
 from psutil import Process
 
@@ -31,9 +32,10 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
         if temp_schedule:
             temp_schedule.step()
         if batch_idx % args.log_interval == 0:
+            t = -math.inf if temp_schedule == None else temp_schedule.avg_temp()
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item(), temp_schedule.avg_temp()))
+                100. * batch_idx / len(train_loader),loss.item(), t))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -66,7 +68,7 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    temp_schedule = JangScheduler(model.temperatures(), 1000, 1e-2, .5)
+    temp_schedule = None if args.deterministic else JangScheduler(model.temperatures(), 1000, 1e-2, .5)
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion,

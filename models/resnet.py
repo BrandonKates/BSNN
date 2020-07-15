@@ -30,7 +30,6 @@ class BasicBlock(nn.Module):
         self.conv2 = conv3x3(planes, planes, device)
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
-        self.nonlinearity = L.RU(planes, device)
 
 
     def forward(self, x):
@@ -43,7 +42,7 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
         out += identity
 
-        return self.nonlinearity(out)
+        return out
 
 
 class ResNet(nn.Module):
@@ -145,7 +144,6 @@ class ResNet(nn.Module):
                 if isinstance(inner, BasicBlock):
                     temps.append(inner.conv1.temp)
                     temps.append(inner.conv2.temp)
-                    temps.append(inner.nonlinearity.temp)
                     if inner.downsample:
                         temps.append(inner.downsample[0].temp)
         return temps

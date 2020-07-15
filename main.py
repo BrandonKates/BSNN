@@ -16,7 +16,7 @@ def get_data(args):
         return cifar10(args.batch_size, num_workers=0)
 
     elif args.dataset == 'svhn':
-        return svhn(args.batch_size, num_workers=0)
+        return svhn(args.batch_size, num_workers=5)
 
 
 def main():
