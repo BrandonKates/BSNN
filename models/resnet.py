@@ -46,25 +46,6 @@ class BasicBlock(nn.Module):
         return self.nonlinearity(out)
 
 
-    def step(self):
-        self.conv1.step()
-        self.conv2.step()
-        self.nonlinearity.step()
-        if self.downsample:
-            self.downsample[0].step()
-
-
-    def avg_temp(self):
-        temps = [
-            self.conv1._tau(),
-            self.conv2._tau(),
-            self.nonlinearity._tau()
-        ]
-        if self.downsample:
-            temps.append(self.downsample[0]._tau())
-        return sum(temps)/len(temps)
-
-
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, device, groups=1, width_per_group=64,
@@ -154,19 +135,20 @@ class ResNet(nn.Module):
             for u in l:
                 u.step()
 
-    def avg_temp(self):
-        temps = [self.conv1._tau()]
-        stoch_layers = [
-            self.layer1,
-            self.layer2,
-            self.layer3,
-            self.layer4
-        ]
-        for l in stoch_layers:
-            for u in l:
-                temps.append(u.avg_temp())
 
-        return sum(temps)/len(temps)
+    def temperatures(self):
+        temps = [self.conv1.temp]
+        stoch_layers = \
+            [self.layer1, self.layer2, self.layer3, self.layer4]
+        for layer in stoch_layers:
+            for inner in layer: #layer is sequential
+                if isinstance(inner, BasicBlock):
+                    temps.append(inner.conv1.temp)
+                    temps.append(inner.conv2.temp)
+                    temps.append(inner.nonlinearity.temp)
+                    if inner.downsample:
+                        temps.append(inner.downsample[0].temp)
+        return temps
 
 
 

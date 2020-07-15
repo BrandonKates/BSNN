@@ -14,8 +14,6 @@ class _GumbelLayer(nn.Module):
         '''
         inner:
             pytorch module subclass instance used as deterministic inner class
-        N: gumbel softmax hyperparameter, see paper
-        r: gumbel softmax hyperparameter, see paper
         device: 
             cpu or gpu. Needed for gumbel sample, would be nice to make
             obselete
@@ -31,11 +29,6 @@ class _GumbelLayer(nn.Module):
             self.norm = nn.Identity()
 
         self.temp = TempVar()
-
-    '''
-    def _tau(self):
-        return max(.5, math.exp(-self.r*math.floor(self.time_step/self.N)))
-    '''
 
 
     def forward(self, x):
@@ -84,8 +77,8 @@ class Conv2d(_GumbelLayer):
 
 
 class RU(_GumbelLayer):
-    def __init__(self, output_dim , device, N=500, r=1e-5):
+    def __init__(self, output_dim , device):
         inner = nn.Identity()
         norm_obj = nn.BatchNorm2d(output_dim)
-        super(RU, self).__init__(inner, N, r, device, norm_obj)
+        super(RU, self).__init__(inner, device, norm_obj)
 
