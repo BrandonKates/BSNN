@@ -3,12 +3,14 @@ import math
 import torch
 from torch import nn
 from torch import exp, log
+
+from optim import TempVar
  
 class _GumbelLayer(nn.Module):
     ''' 
     Base class for all gumbel-stochastic layers
     '''
-    def __init__(self, inner, N, r, device, norm):
+    def __init__(self, inner, device, norm):
         '''
         inner:
             pytorch module subclass instance used as deterministic inner class
@@ -28,18 +30,12 @@ class _GumbelLayer(nn.Module):
         else:
             self.norm = nn.Identity()
 
-        # temperature annealing parameters
-        self.N = N
-        self.r = r
-        self.time_step = 0
+        self.temp = TempVar()
 
-
-    def step(self):
-        self.time_step += 1
-
-
+    '''
     def _tau(self):
         return max(.5, math.exp(-self.r*math.floor(self.time_step/self.N)))
+    '''
 
 
     def forward(self, x):
@@ -62,32 +58,29 @@ class _GumbelLayer(nn.Module):
 
 
     def _gumbel_softmax(self, p):
-        temp = self._tau()
-        y1 = exp(( log(p) + self._sample_gumbel_dist(p.shape) ) / temp)
-        sum_all = y1 + exp(( log(1-p) + self._sample_gumbel_dist(p.shape) ) / temp)
+        y1 = exp(( log(p) + self._sample_gumbel_dist(p.shape) ) / self.temp.val)
+        sum_all = y1 + exp(( log(1-p) + self._sample_gumbel_dist(p.shape))
+                / self.temp.val)
         return y1 / sum_all
         
         
     def _sample_gumbel_dist(self, input_size):
-        if self.device == torch.device('cpu'):
-            u = torch.FloatTensor(input_size).uniform_()
-        else:
-            u = torch.FloatTensor(input_size).to(self.device).uniform_()
+        u = torch.cuda.FloatTensor(input_size).uniform_()
         return -log(-log(u))
 
 
 class Linear(_GumbelLayer):
-    def __init__(self, input_dim, output_dim, device, norm, N=500, r=1e-5):
+    def __init__(self, input_dim, output_dim, device, norm):
         inner = nn.Linear(input_dim, output_dim, bias=False)
         norm_obj = nn.BatchNorm1d(output_dim) if norm else None
-        super(Linear, self).__init__(inner, N, r, device, norm_obj)
+        super(Linear, self).__init__(inner, device, norm_obj)
 
 
 class Conv2d(_GumbelLayer):
-    def __init__(self, inc, outc, kernel, device, norm, N=500, r=1e-5, **kwargs):
+    def __init__(self, inc, outc, kernel, device, norm, **kwargs):
         inner = nn.Conv2d(inc, outc, kernel, **kwargs)
         norm_obj = nn.BatchNorm2d(outc) if norm else None
-        super(Conv2d, self).__init__(inner, N, r, device, norm_obj)
+        super(Conv2d, self).__init__(inner, device, norm_obj)
 
 
 class RU(_GumbelLayer):
