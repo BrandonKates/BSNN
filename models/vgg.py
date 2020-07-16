@@ -87,7 +87,7 @@ def vgg16(stochastic, device):
     if stochastic:
         return _vgg('D', device)
     else:
-        return deterministic_vgg.vgg16_bn
+        return deterministic_vgg.vgg16_bn()
 
 def vgg11(stochastic, device):
     if stochastic:
