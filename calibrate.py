@@ -42,7 +42,6 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
 
             for i in range(len(confidence)):
                 bins[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
-            break
             
     plot_calibration(bins, str(num_passes))
 
