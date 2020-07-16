@@ -58,7 +58,7 @@ class _GumbelLayer(nn.Module):
         
         
     def _sample_gumbel_dist(self, input_size):
-        u = torch.cuda.FloatTensor(input_size).uniform_()
+        u = torch.cuda.FloatTensor(input_size, device=self.device).uniform_()
         return -log(-log(u))
 
 
@@ -75,10 +75,4 @@ class Conv2d(_GumbelLayer):
         norm_obj = nn.BatchNorm2d(outc) if norm else None
         super(Conv2d, self).__init__(inner, device, norm_obj)
 
-
-class RU(_GumbelLayer):
-    def __init__(self, output_dim , device):
-        inner = nn.Identity()
-        norm_obj = nn.BatchNorm2d(output_dim)
-        super(RU, self).__init__(inner, device, norm_obj)
 
