@@ -37,6 +37,8 @@ class Parser():
 
                 self.parser.add_argument('--save-location', '-l', type=str, default='checkpoints/model.pt',
                                     help='Location to Save Model')
+                self.parser.add_argument('--load-location', '-ll', type=str, default='checkpoints/model.pt',
+                                    help='Location to Load Model')
 
                 self.parser.add_argument('--temp', '-t', 
                         help='temperature for softmax, required if using gumbel model')
