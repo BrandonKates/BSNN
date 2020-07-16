@@ -8,17 +8,17 @@ import torch.nn.functional as F
 import numpy as np
 import math
 from sklearn.metrics import confusion_matrix
-from psutil import Process
+#from psutil import Process
 
 from optim import JangScheduler
 
-
+'''
 def cpu_stats():
     pid = getpid()
     py = Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
     print('memory GB:', memoryUse)
-
+'''
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
     model.train()
@@ -35,7 +35,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
             t = -math.inf if temp_schedule == None else temp_schedule.avg_temp()
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item(), t))
+                100. * batch_idx / len(train_loader),loss.item(), t), flush=True)
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
