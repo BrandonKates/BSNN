@@ -6,20 +6,22 @@ from parser import Parser
 from main import get_data
 from matplotlib import pyplot as plt
 
-def plot_calibration(bins):
+def plot_calibration(bins, id):
     num_samples = list(map(lambda x : len(x), bins))
     accuracy = list(map(lambda x : 0 if len(x) == 0 else(1.0*sum(x))/len(x), bins))
     bin_vals = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     plt.plot(bin_vals, accuracy)
     plt.xlabel('Confidence')
     plt.ylabel('Accuracy')
-    plt.show()
+    plt.savefig('accuracy_calibration_'+id+'.png')
+    plt.clf()
     plt.plot(bin_vals, num_samples)
     plt.xlabel('Confidence')
     plt.ylabel('Num Samples')
-    plt.show()
+    plt.savefig('distribution_calibration_'+id+'.png')
 
-def calc_calibration(args, model, device, test_loader, batch_size, num_labels):
+def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
+    print('Plotting for num passes' + str(num_passes))        
     model.eval()
     correct = 0
     bins = [[] for _ in range(10)]
@@ -28,7 +30,7 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels):
             inputs, labels = inputs.float().to(device), labels.long().to(device)
             passes_pred = []
             passes_probab = []
-            for _ in range(args.inference_passes):
+            for _ in range(num_passes):
                 output = model(inputs)
                 passes_pred.append(output.argmax(dim=1, keepdim=True))
                 passes_probab.append(torch.max(torch.nn.Softmax(dim=1)(output), dim=1)[0])
@@ -38,8 +40,9 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels):
 
             for i in range(len(confidence)):
                 bins[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
+            break
             
-    plot_calibration(bins)
+    plot_calibration(bins, str(num_passes))
 
 
 
@@ -80,7 +83,8 @@ def main():
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
     print("Normalize layer outputs?: ", args.normalize)
-    calc_calibration(args, model, device, test_loader, args.batch_size, num_labels)
+    for num_passes in [1, 5, 10]:
+        calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
 
 
 if __name__ == '__main__':
