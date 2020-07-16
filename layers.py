@@ -58,7 +58,10 @@ class _GumbelLayer(nn.Module):
         
         
     def _sample_gumbel_dist(self, input_size):
-        u = torch.cuda.FloatTensor(input_size).uniform_()
+        if self.device == torch.device('cpu'):
+            u = torch.FloatTensor(input_size).uniform_()
+        else:
+            u = torch.cuda.FloatTensor(input_size).uniform_()
         return -log(-log(u))
 
 
