@@ -19,6 +19,8 @@ def plot_calibration(bins, id):
     plt.xlabel('Confidence')
     plt.ylabel('Num Samples')
     plt.savefig('distribution_calibration_'+id+'.png')
+    plt.clf()
+
 
 def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
     print('Plotting for num passes' + str(num_passes))        
