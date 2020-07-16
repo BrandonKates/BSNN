@@ -28,7 +28,7 @@ class _GumbelLayer(nn.Module):
         else:
             self.norm = nn.Identity()
 
-        self.temp = TempVar()
+        self.temp = torch.nn.Parameter(torch.cuda.FloatTensor([1.0]))
 
 
     def forward(self, x):
@@ -45,15 +45,14 @@ class _GumbelLayer(nn.Module):
     def sample(self, p):
         if self.training:
             # sample relaxed bernoulli dist
-            return self._gumbel_softmax(p) 
+            return self._gumbel_softmax(p)
         else:
             return torch.bernoulli(p).to(self.device)
 
 
     def _gumbel_softmax(self, p):
-        y1 = exp(( log(p) + self._sample_gumbel_dist(p.shape) ) / self.temp.val)
-        sum_all = y1 + exp(( log(1-p) + self._sample_gumbel_dist(p.shape))
-                / self.temp.val)
+        y1 = exp((log(p) + self._sample_gumbel_dist(p.shape)) / self.temp)
+        sum_all = y1 + exp((log(1-p) + self._sample_gumbel_dist(p.shape)) / self.temp)
         return y1 / sum_all
         
         
@@ -74,11 +73,4 @@ class Conv2d(_GumbelLayer):
         inner = nn.Conv2d(inc, outc, kernel, **kwargs)
         norm_obj = nn.BatchNorm2d(outc) if norm else None
         super(Conv2d, self).__init__(inner, device, norm_obj)
-
-
-class RU(_GumbelLayer):
-    def __init__(self, output_dim , device):
-        inner = nn.Identity()
-        norm_obj = nn.BatchNorm2d(output_dim)
-        super(RU, self).__init__(inner, device, norm_obj)
 

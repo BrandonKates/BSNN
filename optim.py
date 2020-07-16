@@ -31,3 +31,15 @@ class JangScheduler(_TempScheduler):
         tau = max(self.limit, math.exp(-self.r*math.floor(self.time_step/self.N)))
         for temp in self.temps:
             temp.val = tau
+
+
+class ConstScheduler(_TempScheduler):
+    def __init__(self, temps, const_temp):
+        super(ConstScheduler, self).__init__(temps)
+        self.const_temp = const_temp
+        self.step()
+
+    def step(self):
+        super(ConstScheduler, self).step()
+        for temp in self.temps:
+            temp.val = self.const_temp

@@ -4,14 +4,16 @@ import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
+import torch.autograd as autograd
 import torch.nn.functional as F
 import numpy as np
 import math
 from sklearn.metrics import confusion_matrix
 from psutil import Process
 
-from optim import JangScheduler
+from optim import JangScheduler, ConstScheduler
 
+import sys
 
 def cpu_stats():
     pid = getpid()
@@ -20,22 +22,23 @@ def cpu_stats():
     print('memory GB:', memoryUse)
 
 
-def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
+def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.long().to(device)
         optimizer.zero_grad()
-        loss = criterion(model(inputs), labels)
-        loss.backward()
-        optimizer.step() 
+        with autograd.detect_anomaly():
+            loss = criterion(model(inputs), labels)
+            loss.backward()
+            print(model.temp_grads())
+            #print(model.temperatures())
+            optimizer.step() 
+
         # adjust gumbel temperature 
-        if temp_schedule:
-            temp_schedule.step()
         if batch_idx % args.log_interval == 0:
-            t = -math.inf if temp_schedule == None else temp_schedule.avg_temp()
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item(), t))
+                100. * batch_idx / len(train_loader),loss.item()))
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -67,12 +70,10 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
 
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    temp_schedule = None if args.deterministic else JangScheduler(model.temperatures(), 1000, 1e-2, .5)
+    optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
 
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch, criterion,
-                args.batch_size, temp_schedule)
+        train(args, model, device, train_loader, optimizer, epoch, criterion, args.batch_size)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
         if epoch % 50 == 0:
             if (args.save_model):

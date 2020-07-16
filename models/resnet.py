@@ -138,15 +138,32 @@ class ResNet(nn.Module):
     def temperatures(self):
         temps = [self.conv1.temp]
         stoch_layers = \
-            [self.layer1, self.layer2, self.layer3, self.layer4]
+            [self.layer1, self.layer2,
+            self.layer3, self.layer4]
         for layer in stoch_layers:
             for inner in layer: #layer is sequential
                 if isinstance(inner, BasicBlock):
                     temps.append(inner.conv1.temp)
                     temps.append(inner.conv2.temp)
-                    if inner.downsample:
-                        temps.append(inner.downsample[0].temp)
-        return temps
+                if inner.downsample:
+                    temps.append(inner.downsample[0].temp)
+        return list(map(lambda t: t.item(), temps))
+
+    def temp_grads(self):
+        temps = [self.conv1.temp]
+        stoch_layers = \
+            [self.layer1, self.layer2,
+            self.layer3, self.layer4]
+        for layer in stoch_layers:
+            for inner in layer: #layer is sequential
+                if isinstance(inner, BasicBlock):
+                    temps.append(inner.conv1.temp)
+                    temps.append(inner.conv2.temp)
+                if inner.downsample:
+                    temps.append(inner.downsample[0].temp)
+        return list(map(lambda t: t.grad, temps))
+
+
 
 
 
