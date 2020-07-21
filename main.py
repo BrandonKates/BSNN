@@ -39,7 +39,7 @@ def main():
 
     elif 'vgg' in args.model:
         constructor = getattr(vgg, args.model)
-        model = constructor(not args.deterministic, device).to(device)
+        model = constructor(not args.deterministic, device, args.orthogonal).to(device)
 
     else:
         init_args = [args.normalize, not args.deterministic, device]

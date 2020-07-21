@@ -59,6 +59,7 @@ class Parser():
 
                 self.parser.add_argument('--normalize', '-n', default=False,
                     action='store_true', help='batch norm, if model allows')
+                self.parser.add_argument('--orthogonal', action='store_true', default=False)
 
 
 	def parse(self):

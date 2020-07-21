@@ -61,13 +61,15 @@ class _GumbelLayer(nn.Module):
         if self.device == torch.device('cpu'):
             u = torch.FloatTensor(input_size).uniform_()
         else:
-            u = torch.cuda.FloatTensor(input_size).uniform_()
+            u = torch.cuda.FloatTensor(input_size, device=self.device).uniform_()
         return -log(-log(u))
 
 
 class Linear(_GumbelLayer):
-    def __init__(self, input_dim, output_dim, device, norm):
+    def __init__(self, input_dim, output_dim, device, norm, orthogonal):
         inner = nn.Linear(input_dim, output_dim, bias=False)
+        if orthogonal:
+            nn.init.orthogonal_(inner.weight)
         norm_obj = nn.BatchNorm1d(output_dim) if norm else None
         super(Linear, self).__init__(inner, device, norm_obj)
 

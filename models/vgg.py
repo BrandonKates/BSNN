@@ -6,15 +6,15 @@ import layers as L
 
 
 class VGG(nn.Module):
-    def __init__(self, features, device):
+    def __init__(self, features, device, orthogonal):
         super(VGG, self).__init__()
         self.features = features
         self.device = device
         self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
         self.classifier = nn.Sequential(
-            L.Linear(512*7*7, 4096, device, True),
-            L.Linear(4096, 4096, device, True),
-            L.Linear(4096, 10, device, True)
+            L.Linear(512*7*7, 4096, device, True, orthogonal),
+            L.Linear(4096, 4096, device, True, orthogonal),
+            nn.Linear(4096, 10, bias=False)
         )
         self._init_weights()
 
@@ -33,7 +33,6 @@ class VGG(nn.Module):
                 temps.append(l.temp)
         temps.append(self.classifier[0].temp)
         temps.append(self.classifier[1].temp)
-        temps.append(self.classifier[2].temp)
         return temps
 
 
@@ -54,6 +53,9 @@ class VGG(nn.Module):
                     nn.init.constant_(m.inner.bias, 0)
                 nn.init.constant_(m.norm.weight, 1)
                 nn.init.constant_(m.norm.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight)
+                m.requires_grad = False
 
 
 def _make_layers(cfg, device):
@@ -79,13 +81,13 @@ cfgs = {
 }
 
 
-def _vgg(cfg, device):
-    return VGG(_make_layers(cfgs[cfg], device), device)
+def _vgg(cfg, device, orthogonal):
+    return VGG(_make_layers(cfgs[cfg], device), device, orthogonal)
 
 
-def vgg16(stochastic, device):
+def vgg16(stochastic, device, orthogonal):
     if stochastic:
-        return _vgg('D', device)
+        return _vgg('D', device, orthogonal)
     else:
         return deterministic_vgg.vgg16_bn()
 
