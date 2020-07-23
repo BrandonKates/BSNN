@@ -46,12 +46,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
-            passes_pred = []
+            outputs = []
             for _ in range(args.inference_passes):
-                output = model(inputs)
-                test_loss += criterion(output, labels).sum().item() # sum up batch loss
-                passes_pred.append(output.argmax(dim=1, keepdim=True))
-            pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
+                outputs.append(model(inputs))
+            mean_output = torch.mean(torch.stack(outputs), dim=0)
+            pred = mean_output.argmax(dim=1)
+            test_loss += criterion(mean_output, labels).sum().item()
             correct += pred.eq(labels.view_as(pred)).sum().item()
             conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
