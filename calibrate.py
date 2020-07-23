@@ -35,7 +35,6 @@ def calc_calibration_error(bins_confidence, bins_accuracy):
 def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
     print('Plotting for num passes' + str(num_passes))        
     model.eval()
-    correct = 0
     bins_accuracy = [[] for _ in range(10)]
     bins_confidence = [[] for _ in range(10)]
     with torch.no_grad():
@@ -55,6 +54,24 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
 
     calc_calibration_error(bins_confidence, bins_accuracy)
     plot_calibration_accuracy(bins_accuracy, args.model + "_" + str(num_passes))
+
+def calc_calibration_det(args, model, device, test_loader, batch_size, num_labels):
+    model.eval()
+    bins_accuracy = [[] for _ in range(10)]
+    bins_confidence = [[] for _ in range(10)]
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.float().to(device), labels.long().to(device)
+            mean_output = model(inputs)
+            pred = mean_output.argmax(dim=1)
+            confidence = torch.max(torch.nn.Softmax(dim=1)(mean_output), dim=1)[0]
+            for i in range(len(confidence)):
+                bins_accuracy[min(int(confidence[i] * 10), 9)].append((pred[i] == labels[i]).item())
+                bins_confidence[min(int(confidence[i] * 10), 9)].append((pred[i]).item())
+                                
+
+    calc_calibration_error(bins_confidence, bins_accuracy)
+    plot_calibration_accuracy(bins_accuracy, args.model + "_det")
 
 
 
@@ -95,8 +112,11 @@ def main():
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
     print("Normalize layer outputs?: ", args.normalize)
-    for num_passes in [1, 5, 10]:
-        calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
+    if args.deterministic:
+        calc_calibration_det(args, model, device, test_loader, args.batch_size, num_labels)
+    else:
+        for num_passes in [1, 5, 10]:
+            calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
 
 
 if __name__ == '__main__':
