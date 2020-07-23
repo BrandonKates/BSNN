@@ -154,9 +154,7 @@ def resnet18(stochastic, device):
     if stochastic:
         return ResNet(BasicBlock, [2,2,2,2], device)
     else:
-        import resnetd
-        return resnetd.resnet18()
-        #return deterministic_resnet.resnet18()
+        return deterministic_resnet.resnet18()
 
 
 def resnet34(stochastic, device):
