@@ -26,8 +26,8 @@ def plot_calibration_accuracy(bins, id):
 
 def calc_calibration_error(bins_confidence, bins_accuracy):
     num_samples = list(map(lambda x : len(x), bins_accuracy))
-    bins_avg_accuracy = list(map(lambda x: np.mean(x), bins_accuracy))
-    bins_avg_confidence = list(map(lambda x: np.mean(x), bins_confidence))
+    bins_avg_accuracy = list(map(lambda x: 0 if len(x) == 0 else np.mean(x), bins_accuracy))
+    bins_avg_confidence = list(map(lambda x: 0 if len(x) == 0 else np.mean(x), bins_confidence))
     ece = sum(np.array(num_samples)*np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))/sum(num_samples)
     mce = max(np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))
     print("ECE: {:.3f}, MCE: {:.3f}".format(ece, mce))
