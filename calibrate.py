@@ -4,6 +4,8 @@ from dataloaders import cifar10, mnist, svhn
 from models import lenet5, simpleconv, complexconv, resnet, vgg
 from parser import Parser
 from main import get_data
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 def plot_calibration(bins, id):
@@ -30,20 +32,17 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
-            passes_pred = []
-            passes_probab = []
+            outputs = []
             for _ in range(num_passes):
-                output = model(inputs)
-                passes_pred.append(output.argmax(dim=1, keepdim=True))
-                passes_probab.append(torch.max(torch.nn.Softmax(dim=1)(output), dim=1)[0])
+                outputs.append(model(inputs))
 
-            pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=False)[0]
-            confidence = torch.mean(torch.stack(passes_probab), dim=0, keepdim=True)[0]
-
+            mean_output = torch.mean(torch.stack(outputs), dim=0)
+            pred = mean_output.argmax(dim=1)
+            confidence = torch.max(torch.nn.Softmax(dim=1)(mean_output), dim=1)[0]
             for i in range(len(confidence)):
                 bins[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
             
-    plot_calibration(bins, str(num_passes))
+    plot_calibration(bins, args.model + "_" + str(num_passes))
 
 
 
