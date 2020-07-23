@@ -47,4 +47,4 @@ class ConstScheduler(_TempScheduler):
         else:
             for temp in self.temps:
                 temp.val = self.const
-            sef.set = True
+            self.set = True

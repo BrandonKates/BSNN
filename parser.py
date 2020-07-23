@@ -5,6 +5,7 @@ from optim import *
 class Parser():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='Train BSNN Model')
+        self.parser.add_argument('experiment_name')
         self.parser.add_argument('--dataset', '-d', type=str, required=True, 
                             help='which dataset do you want to train on?')
 

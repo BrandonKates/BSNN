@@ -10,7 +10,7 @@ import math
 from sklearn.metrics import confusion_matrix
 from psutil import Process
 
-from optim import JangScheduler
+from optim import JangScheduler, ConstScheduler
 
 
 def cpu_stats():
@@ -65,17 +65,23 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
     print("Confusion Matrix:\n", np.int_(conf_mat))
 
 
+def _temp_scheduler(model, args):
+    if args.temp_jang:
+        N, r, limit = args.temp_step, args.temp_exp, args.temp_limit
+        return JangScheduler(model.temperatures(), N, r, limit)
+    else:
+        return ConstScheduler(model.temperatures(), args.temp_const)
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    temp_schedule = None if args.deterministic else JangScheduler(model.temperatures(), 1000, 1e-2, .5)
+    temp_schedule = None if args.deterministic else _temp_scheduler(model, args)
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 args.batch_size, temp_schedule)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
         if epoch % 50 == 0:
-            if (args.save_model):
-                torch.save(model.state_dict(), args.save_location + str(epoch))
+            torch.save(model.state_dict(),
+                    f'checkpoints/{args.experiment_name}_{epoch}.pt')
     if (args.save_model):
         torch.save(model.state_dict(), args.save_location + str(epoch))
