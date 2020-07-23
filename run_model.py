@@ -77,3 +77,5 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
         if epoch % 50 == 0:
             if (args.save_model):
                 torch.save(model.state_dict(), args.save_location + str(epoch))
+    if (args.save_model):
+        torch.save(model.state_dict(), args.save_location + str(epoch))

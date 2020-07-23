@@ -81,9 +81,3 @@ class Conv2d(_GumbelLayer):
         super(Conv2d, self).__init__(inner, device, norm_obj)
 
 
-class RU(_GumbelLayer):
-    def __init__(self, output_dim , device):
-        inner = nn.Identity()
-        norm_obj = nn.BatchNorm2d(output_dim)
-        super(RU, self).__init__(inner, device, norm_obj)
-
