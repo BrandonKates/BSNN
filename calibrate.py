@@ -7,8 +7,9 @@ from main import get_data
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+import numpy as np
 
-def plot_calibration(bins, id):
+def plot_calibration_accuracy(bins, id):
     num_samples = list(map(lambda x : len(x), bins))
     accuracy = list(map(lambda x : 0 if len(x) == 0 else(1.0*sum(x))/len(x), bins))
     bin_vals = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -23,12 +24,20 @@ def plot_calibration(bins, id):
     plt.savefig('distribution_calibration_'+id+'.png')
     plt.clf()
 
+def calc_calibration_error(bins_confidence, bins_accuracy):
+    num_samples = list(map(lambda x : len(x), bins_accuracy))
+    bins_avg_accuracy = list(map(lambda x: np.mean(x), bins_accuracy))
+    bins_avg_confidence = list(map(lambda x: np.mean(x), bins_confidence))
+    ece = sum(np.array(num_samples)*np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))/sum(num_samples)
+    mce = max(np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))
+    print("ECE: {:.3f}, MCE: {:.3f}".format(ece, mce))
 
 def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
     print('Plotting for num passes' + str(num_passes))        
     model.eval()
     correct = 0
-    bins = [[] for _ in range(10)]
+    bins_accuracy = [[] for _ in range(10)]
+    bins_confidence = [[] for _ in range(10)]
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
@@ -40,9 +49,12 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
             pred = mean_output.argmax(dim=1)
             confidence = torch.max(torch.nn.Softmax(dim=1)(mean_output), dim=1)[0]
             for i in range(len(confidence)):
-                bins[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
-            
-    plot_calibration(bins, args.model + "_" + str(num_passes))
+                bins_accuracy[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
+                bins_confidence[int(confidence[i] * 10)].append((pred[i]).item())
+                                
+
+    calc_calibration_error(bins_confidence, bins_accuracy)
+    plot_calibration_accuracy(bins_accuracy, args.model + "_" + str(num_passes))
 
 
 
@@ -67,7 +79,7 @@ def main():
 
     elif 'vgg' in args.model:
         constructor = getattr(vgg, args.model)
-        model = constructor(not args.deterministic, device).to(device)
+        model = constructor(not args.deterministic, device, args.orthogonal).to(device)
 
     else:
         init_args = [args.normalize, not args.deterministic, device]
