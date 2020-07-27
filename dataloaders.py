@@ -22,21 +22,30 @@ def mnist(resize=False, test_split=0.2, batch_size=1, num_workers=1):
 
 
 def cifar10(batch_size, num_workers=1):
-    transform = transforms.Compose([
-        transforms.ToTensor(), 
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                              std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(
+        mean=[0.4914, 0.4822, 0.4465],
+        std=[0.247, 0.243, 0.261]
+    )
+
+    train_transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        normalize
     ])
 
-    trainset = CIFAR10(root='./CIFAR10_DATA', 
-            train=True, download=True,
-            transform=transform )
+    test_transform = transforms.Compose([
+        transforms.ToTensor(),
+        normalize
+    ])
+
+    trainset = CIFAR10(root='./CIFAR10_DATA', train=True, download=True,
+                        transform=train_transform)
     trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True,
                              num_workers=num_workers)
 
-    testset = CIFAR10(root='./CIFAR10_DATA', 
-            train=False, download=True,
-            transform=transform)
+    testset = CIFAR10(root='./CIFAR10_DATA', train=False, download=True,
+                        transform=test_transform)
     testloader = DataLoader(testset, batch_size=batch_size, shuffle=True,
                             num_workers=num_workers)
 

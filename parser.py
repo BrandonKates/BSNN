@@ -38,10 +38,10 @@ class Parser():
         self.parser.add_argument('--save-model', '-s', action='store_true', default=False,
                             help='For Saving the current Model')
 
-        self.parser.add_argument('--save-location', '-l', type=str, default='checkpoints/model.pt',
-                            help='Location to Save Model')
-        self.parser.add_argument('--load-location', '-ll', type=str, default='checkpoints/model.pt',
+        self.parser.add_argument('--resume', '-r', type=str, 
                                     help='Location to Load Model')
+        self.parser.add_argument('--no-save', action='store_true',
+                    default=False, help='pass to prevent model saving/checkpoint')
 
         self.parser.add_argument('--temp', '-t', 
                 help='temperature for softmax, required if using gumbel model')
@@ -54,7 +54,7 @@ class Parser():
         action='store_true', default=False, 
         help='print layer gradients if model implements `print_grads` ')
 
-        self.parser.add_argument('--batch-size', type=int, default=16,
+        self.parser.add_argument('--batch-size', type=int, default=64,
             help='input batch size for training')
 
         self.parser.add_argument('--inference-passes', '-i', type=int, default=10,
@@ -67,9 +67,9 @@ class Parser():
         # temperature schedule arguments
         self.parser.add_argument('--temp-jang', '-tj',
                 action='store_true')
-        self.parser.add_argument('--temp-step', type=int)
-        self.parser.add_argument('--temp-exp', type=float)
-        self.parser.add_argument('--temp-limit', type=float)
+        self.parser.add_argument('--temp-step', type=int, default=1000)
+        self.parser.add_argument('--temp-exp', type=float, default=1e-2)
+        self.parser.add_argument('--temp-limit', type=float, default=.5)
         self.parser.add_argument('--temp-const', type=float, default=1.)
 
         # densenet related arguments

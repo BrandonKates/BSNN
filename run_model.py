@@ -12,14 +12,6 @@ from sklearn.metrics import confusion_matrix
 
 from optim import JangScheduler, ConstScheduler
 
-'''
-def cpu_stats():
-    pid = getpid()
-    py = Process(pid)
-    memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
-    print('memory GB:', memoryUse)
-'''
-
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
@@ -72,6 +64,7 @@ def _temp_scheduler(model, args):
     else:
         return ConstScheduler(model.temperatures(), args.temp_const)
 
+
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
     temp_schedule = None if args.deterministic else _temp_scheduler(model, args)
@@ -80,8 +73,7 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 args.batch_size, temp_schedule)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)
-        if epoch % 50 == 0:
-            torch.save(model.state_dict(),
-                    f'checkpoints/{args.experiment_name}_{epoch}.pt')
-    if (args.save_model):
-        torch.save(model.state_dict(), args.save_location + str(epoch))
+
+    if not args.no_save:
+        torch.save(model.state_dict(),
+                f'checkpoints/{args.experiment_name}_{args.epoch}.pt')
