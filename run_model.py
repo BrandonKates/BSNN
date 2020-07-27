@@ -8,17 +8,17 @@ import torch.nn.functional as F
 import numpy as np
 import math
 from sklearn.metrics import confusion_matrix
-from psutil import Process
+#from psutil import Process
 
 from optim import JangScheduler, ConstScheduler
 
-
+'''
 def cpu_stats():
     pid = getpid()
     py = Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
     print('memory GB:', memoryUse)
-
+'''
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
     model.train()
@@ -35,7 +35,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_
             t = -math.inf if temp_schedule == None else temp_schedule.avg_temp()
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'.format(
                 epoch, batch_idx * len(inputs), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),loss.item(), t))
+                100. * batch_idx / len(train_loader),loss.item(), t), flush=True)
 
 
 def test(args, model, device, test_loader, criterion, batch_size, num_labels):
@@ -46,12 +46,12 @@ def test(args, model, device, test_loader, criterion, batch_size, num_labels):
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.float().to(device), labels.long().to(device)
-            passes_pred = []
+            outputs = []
             for _ in range(args.inference_passes):
-                output = model(inputs)
-                test_loss += criterion(output, labels).sum().item() # sum up batch loss
-                passes_pred.append(output.argmax(dim=1, keepdim=True))
-            pred = torch.mode(torch.cat(passes_pred, dim=1), dim=1, keepdim=True)[0]
+                outputs.append(model(inputs))
+            mean_output = torch.mean(torch.stack(outputs), dim=0)
+            pred = mean_output.argmax(dim=1)
+            test_loss += criterion(mean_output, labels).sum().item()
             correct += pred.eq(labels.view_as(pred)).sum().item()
             conf_mat += confusion_matrix(labels.cpu().numpy(), pred.cpu().numpy(), labels=range(num_labels))
 
