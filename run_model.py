@@ -12,6 +12,11 @@ from sklearn.metrics import confusion_matrix
 
 from optim import JangScheduler, ConstScheduler
 
+def adjust_lr(base_lr, epoch, optimizer):
+    lr = base_lr * (0.1 ** (epoch // 30))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
 def train(args, model, device, train_loader, optimizer, epoch, criterion, batch_size, temp_schedule=None):
     model.train()
     for batch_idx, (inputs, labels) in enumerate(train_loader):
@@ -70,6 +75,8 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
     temp_schedule = None if args.deterministic else _temp_scheduler(model, args)
 
     for epoch in range(1, args.epochs + 1):
+        if args.adjust_lr:
+            adjust_lr(args.lr, epoch, optimizer)
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 args.batch_size, temp_schedule)
         test(args, model, device, test_loader, criterion, args.batch_size, num_labels)

@@ -43,9 +43,6 @@ class Parser():
         self.parser.add_argument('--no-save', action='store_true',
                     default=False, help='pass to prevent model saving/checkpoint')
 
-        self.parser.add_argument('--temp', '-t', 
-                help='temperature for softmax, required if using gumbel model')
-
         self.parser.add_argument('--deterministic', action='store_true', 
                 default=False, 
                 help='Run deterministic variant, if one exists')
@@ -63,6 +60,8 @@ class Parser():
         self.parser.add_argument('--normalize', '-n', default=False,
             action='store_true', help='batch norm, if model allows')
         self.parser.add_argument('--orthogonal', action='store_true', default=False)
+        self.parser.add_argument('--adjust-lr', action='store_true',
+                default=False)
 
         # temperature schedule arguments
         self.parser.add_argument('--temp-jang', '-tj',
