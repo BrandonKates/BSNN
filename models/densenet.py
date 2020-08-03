@@ -100,6 +100,7 @@ class _DenseNet(nn.Module):
         in_planes = int(in_planes+n*growth_rate)
 
         self.bn1 = nn.BatchNorm2d(in_planes)
+
         self.fc = nn.Linear(in_planes, 10)
         torch.nn.init.orthogonal_(self.fc.weight)
         self.fc.weight.requires_grad = False

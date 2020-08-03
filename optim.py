@@ -8,10 +8,6 @@ class _TempScheduler():
     def step(self):
         self.time_step += 1
 
-    def avg_temp(self):
-        vals = list(map(lambda _: _.val, self.temps))
-        return sum(vals)/len(vals)
-
 class TempVar():
     def __init__(self, val=-math.inf):
         self.val = val

@@ -26,16 +26,6 @@ class VGG(nn.Module):
         return self.classifier(x)
 
 
-    def temperatures(self):
-        temps = []
-        for l in self.features:
-            if isinstance(l, L.Conv2d):
-                temps.append(l.temp)
-        temps.append(self.classifier[0].temp)
-        temps.append(self.classifier[1].temp)
-        return temps
-
-
     def _init_weights(self):
         for m in self.modules():
             if isinstance(m, L.Conv2d):

@@ -53,10 +53,6 @@ def main():
         }
         model = models[args.model](*init_args).to(device)
 
-    print("Model Architecture: ", model)
-    print("Using device: ", device)
-    print("Train Data Shape: ", train_data.data.shape)
-    print("Normalize layer outputs?: ", args.normalize)
     criterion = torch.nn.CrossEntropyLoss()
     run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
 

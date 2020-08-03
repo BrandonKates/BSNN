@@ -78,7 +78,9 @@ class Parser():
         self.parser.add_argument('--no-bottleneck',
                 action='store_true', dest='bottleneck')
         self.parser.set_defaults(bottleneck=True)
-
+        
+        self.parser.add_argument('--metrics-dir', type=str, default='runs')
+        self.parser.add_argument('--log-dir', type=str, default='log')
 
     def parse(self):
         return self.parser.parse_args()
