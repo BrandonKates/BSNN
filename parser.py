@@ -42,6 +42,8 @@ class Parser():
                                     help='Location to Load Model')
         self.parser.add_argument('--no-save', action='store_true',
                     default=False, help='pass to prevent model saving/checkpoint')
+        self.parser.add_argument('--no-log', action='store_true',
+                default=False)
 
         self.parser.add_argument('--deterministic', action='store_true', 
                 default=False, 
@@ -60,6 +62,7 @@ class Parser():
         self.parser.add_argument('--normalize', '-n', default=False,
             action='store_true', help='batch norm, if model allows')
         self.parser.add_argument('--orthogonal', action='store_true', default=False)
+        self.parser.add_argument('--optimizer', '-o', type=str, default='adam')
         self.parser.add_argument('--adjust-lr', action='store_true',
                 default=False)
 

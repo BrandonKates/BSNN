@@ -28,11 +28,14 @@ def model_grads(model):
     return grads
 
 
-def model_temps(model):
+def model_temps(model, val_only=True):
     temps = []
     for m in model.modules():
         if isinstance(m, L.Conv2d) or isinstance(m, L.Linear):
-            temps.append(m.temp.val)
+            if val_only:
+                temps.append(m.temp.val)
+            else:
+                temps.append(m.temp)
     return temps
 
 def avg(l):
@@ -63,7 +66,7 @@ def log_test(avg_loss, correct, num_test_samples, conf_mat):
 
 
 def train(args, model, device, train_loader, optimizer, epoch, criterion,
-        metrics_writer, temp_schedule=None):
+        metrics_writer=None, temp_schedule=None):
     model.train()
     losses = []
     temps = []
@@ -84,7 +87,8 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion,
             pct = 100. * batch_idx / len(train_loader)
             log_train_step(model, epoch, inputs_seen, inputs_tot, pct, loss.item(), t)
 
-    record_metrics(metrics_writer, epoch, 'train', loss=avg(losses),
+    if metrics_writer:
+        record_metrics(metrics_writer, epoch, 'train', loss=avg(losses),
             temp=avg(temps))
 
 
@@ -110,33 +114,40 @@ def test(args, model, device, test_loader, criterion, num_labels):
     return test_loss, correct/len(test_loader.dataset)
 
 
-def _temp_scheduler(model, args):
+def _temp_scheduler(temps, args):
     if args.temp_jang:
         N, r, limit = args.temp_step, args.temp_exp, args.temp_limit
-        return JangScheduler(model.temperatures(), N, r, limit)
+        return JangScheduler(temps, N, r, limit)
     else:
-        return ConstScheduler(model.temperatures(), args.temp_const)
+        return ConstScheduler(temps, args.temp_const)
 
 
 def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
-    if not path.exists(args.metrics_dir):
-        mkdir(args.metrics_dir)
-    metrics_path = path.join(args.metrics_dir, args.experiment_name)
-    metrics_writer = SummaryWriter(log_dir=metrics_path)
+    handlers = [logging.StreamHandler()]
+    metrics_writer = None
+    if not args.no_log:
+        if not path.exists(args.metrics_dir):
+            mkdir(args.metrics_dir)
+        metrics_path = path.join(args.metrics_dir, args.experiment_name)
+        metrics_writer = SummaryWriter(log_dir=metrics_path)
+        if not path.exists(args.log_dir):
+            mkdir(args.log_dir)
+        log_file = path.join(args.log_dir, f'{args.experiment_name}.log')
+        handlers.append(logging.FileHandler(log_file))
 
-    if not path.exists(args.log_dir):
-        mkdir(args.log_dir)
-    log_file = path.join(args.log_dir, f'{args.experiment_name}.log')
-    handlers = [logging.FileHandler(log_file), logging.StreamHandler()]
     logging.basicConfig(handlers=handlers, format='%(message)s', level=logging.INFO)
+
+    if args.optimizer == 'adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
+    elif args.optimizer == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
+                momentum=.9, nesterov=True, weight_decay=10e-4)
+
+    temp_schedule = None if args.deterministic else _temp_scheduler(model_temps(model, val_only=False), args)
 
     logging.info("Model Architecture: ", model)
     logging.info("Using device: ", device)
     logging.info("Normalize layer outputs?: ", args.normalize)
-
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    temp_schedule = None if args.deterministic else _temp_scheduler(model, args)
 
     for epoch in range(1, args.epochs + 1):
         if args.adjust_lr:
@@ -144,11 +155,13 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 metrics_writer, temp_schedule)
         loss, acc = test(args, model, device, test_loader, criterion, num_labels)
-        record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
+        if not args.no_log:
+            record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
 
     if not args.no_save:
         torch.save(model.state_dict(),
                 f'checkpoints/{args.experiment_name}_{args.epochs}.pt')
 
-    metrics_writer.flush()
-    metrics_writer.close()
+    if not args.no_log:
+        metrics_writer.flush()
+        metrics_writer.close()
