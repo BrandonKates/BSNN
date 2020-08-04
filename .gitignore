@@ -10,3 +10,5 @@ CIFAR10_DATA
 scripts/*.err
 scripts/*.log
 SVHN/*
+runs/
+checkpoints/
