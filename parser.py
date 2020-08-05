@@ -39,7 +39,7 @@ class Parser():
                             help='For Saving the current Model')
 
         self.parser.add_argument('--resume', '-r', type=str, 
-                                    help='Location to Load Model')
+                                    help='Location to Load Model from')
         self.parser.add_argument('--no-save', action='store_true',
                     default=False, help='pass to prevent model saving/checkpoint')
         self.parser.add_argument('--no-log', action='store_true',

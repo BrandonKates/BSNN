@@ -36,6 +36,16 @@ def model_temps(model, val_only=True):
                 temps.append(m.temp)
     return temps
 
+
+def checkpoint(model, optimizer, epoch, exp_name):
+    to_pickle = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }
+    torch.save(to_pickle, f'checkpoints/{exp_name}_{epoch}.tar')
+
+
 def avg(l):
     if len(l) == 0:
         return 0
@@ -118,7 +128,9 @@ def _temp_scheduler(temps, args):
         return ConstScheduler(temps, args.temp_const)
 
 
-def run_model(model, args, criterion, train_loader, test_loader, num_labels, device):
+def run_model(model, optimizer, start_epoch, args, train_loader, test_loader, device):
+    criterion = nn.CrossEntropyLoss()
+
     handlers = [logging.StreamHandler()]
     metrics_writer = None
     if not args.no_log:
@@ -133,19 +145,16 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
 
     logging.basicConfig(handlers=handlers, format='%(message)s', level=logging.INFO)
 
-    if args.optimizer == 'adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-    elif args.optimizer == 'sgd':
-        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
-                momentum=.9, nesterov=True, weight_decay=10e-4)
-
     temp_schedule = None if args.deterministic else _temp_scheduler(model_temps(model, val_only=False), args)
+
+    # labels should be a whole number from [0, num_classes - 1]
+    num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
 
     logging.info("Model Architecture: ", model)
     logging.info("Using device: ", device)
     logging.info("Normalize layer outputs?: ", args.normalize)
 
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(start_epoch, start_epoch + args.epochs + 1):
         if args.adjust_lr:
             adjust_lr(args.lr, epoch, optimizer)
         train(args, model, device, train_loader, optimizer, epoch, criterion,
@@ -153,6 +162,8 @@ def run_model(model, args, criterion, train_loader, test_loader, num_labels, dev
         loss, acc = test(args, model, device, test_loader, criterion, num_labels)
         if not args.no_log:
             record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
+        if (epoch % 10) == 0 and not args.no_save:
+            checkpoint(model, optimizer, epoch+1, args.experiment_name)
 
     if not args.no_save:
         torch.save(model.state_dict(),

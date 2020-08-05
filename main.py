@@ -29,10 +29,6 @@ def main():
 
     train_data, test_data, train_loader, test_loader = get_data(args)
 
-    # labels should be a whole number from [0, num_classes - 1]
-    num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
-    output_size = num_labels
-
     if 'resnet' in args.model:
         constructor = getattr(resnet, args.model)
         model = constructor(not args.deterministic, device).to(device)
@@ -53,8 +49,21 @@ def main():
         }
         model = models[args.model](*init_args).to(device)
 
-    criterion = torch.nn.CrossEntropyLoss()
-    run_model(model, args, criterion, train_loader, test_loader, num_labels, device)
+    if args.optimizer == 'adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
+    elif args.optimizer == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
+                momentum=.9, nesterov=True, weight_decay=10e-4)
+
+    start_epoch = 1
+
+    if args.resume: # load checkpoint
+        checkpoint = torch.load(args.resume)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch']
+
+    run_model(model, optimizer, start_epoch, args, train_loader, test_loader, device)
 
 if __name__ == '__main__':
     main()
