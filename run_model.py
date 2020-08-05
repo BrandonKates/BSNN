@@ -13,7 +13,7 @@ from optim import JangScheduler, ConstScheduler
 import layers as L
 
 def adjust_lr(base_lr, epoch, optimizer):
-    lr = base_lr * (0.1 ** (epoch // 30))
+    lr = base_lr * (0.1 ** (epoch // 150)) * (.1 ** (epoch // 225))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
@@ -23,8 +23,6 @@ def model_grads(model):
     for m in model.modules():
         if isinstance(m, L.Conv2d) or isinstance(m, L.Linear):
             grads.append(torch.norm(m.inner.weight.grad).item())
-        elif isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-            grads.append(torch.norm(m.weight.grad).item())
     return grads
 
 
@@ -49,11 +47,9 @@ def record_metrics(writer, epoch, phase, **metrics):
     
 def log_train_step(model, epoch, inputs_seen, inputs_tot, pct, loss, temp):
     fmt = 'Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'
-
     grads = model_grads(model)
     mean_grad = sum(grads)/len(grads)
     grads = '\tGrads: {:.6f}'.format(mean_grad)
-    #grads = ('\nGrad:' + (' {:.5f}' * len(grads))).format(*grads)
     log_str = fmt.format(epoch, inputs_seen, inputs_tot, pct, loss, temp)
     logging.info(log_str + grads)
 

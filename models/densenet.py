@@ -104,6 +104,7 @@ class _DenseNet(nn.Module):
         self.fc = nn.Linear(in_planes, 10)
         torch.nn.init.orthogonal_(self.fc.weight)
         self.fc.weight.requires_grad = False
+        self.fc.bias.requires_grad = False
         self.in_planes = in_planes
 
         # init weights

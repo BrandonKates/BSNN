@@ -45,6 +45,41 @@ class BasicBlock(nn.Module):
         return out
 
 
+class BottleneckBlock(nn.Module):
+    expansion = 4
+
+    def __init__(self, in_planes, planes, device, stride=1, downsample=None,
+            groups=1, base_width=64, dilation=1, norm_layer=None):
+        super(BottleneckBlock, self).__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        width = int(planes * (base_width/64)) * groups
+        self.conv1 = conv1x1(in_planes, planes, device)
+        self.bn1 = norm_layer(width)
+        self.conv2 = conv3x3(width, width, device, stride, groups, dilation)
+        self.bn2 = norm_layer(width)
+        self.conv3 = conv1x1(width, planes * self.expansion, device)
+        self.bn3 = norm_layer(planes * self.expansion)
+        self.downsample = downsample
+        self.stride = stride
+
+
+    def forward(self, x):
+        identity = x
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        return out
+
+
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, device, groups=1, width_per_group=64,
@@ -122,33 +157,6 @@ class ResNet(nn.Module):
 
         return x
 
-    def step(self):
-        self.conv1.step()
-        layers = [
-            self.layer1,
-            self.layer2,
-            self.layer3,
-            self.layer4
-        ]
-        for l in layers:
-            for u in l:
-                u.step()
-
-
-    def temperatures(self):
-        temps = [self.conv1.temp]
-        stoch_layers = \
-            [self.layer1, self.layer2, self.layer3, self.layer4]
-        for layer in stoch_layers:
-            for inner in layer: #layer is sequential
-                if isinstance(inner, BasicBlock):
-                    temps.append(inner.conv1.temp)
-                    temps.append(inner.conv2.temp)
-                    if inner.downsample:
-                        temps.append(inner.downsample[0].temp)
-        return temps
-
-
 
 def resnet18(stochastic, device):
     if stochastic:
@@ -162,3 +170,9 @@ def resnet34(stochastic, device):
         return ResNet(BasicBlock, [3, 4, 6, 3], device)
     else:
         return deterministic_resnet.resnet34()
+
+def resnet50(stochastic, device):
+    if stochastic:
+        return ResNet(BottleneckBlock, [3,4,6,3], device)
+    else:
+        return deterministic_resnet.resnet50()
