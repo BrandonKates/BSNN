@@ -1,4 +1,6 @@
-from torch.utils.data import Dataset, DataLoader
+import random
+
+from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler
 from torchvision.datasets import CIFAR10, MNIST, SVHN
 from torchvision import transforms
 
@@ -22,6 +24,15 @@ def mnist(resize=False, test_split=0.2, batch_size=1, num_workers=1):
 
 
 def cifar10(batch_size, num_workers=1):
+    NUM_TEST = 10000
+    NUM_TRAIN = 50000
+
+    indices = list(range(NUM_TRAIN))
+    random.shuffle(indices)
+    val_inds, train_inds = indices[:NUM_TEST], indices[NUM_TEST:]
+    train_sampler = SubsetRandomSampler(train_inds)
+    val_sampler = SubsetRandomSampler(val_inds)
+
     normalize = transforms.Normalize(
         mean=[0.4914, 0.4822, 0.4465],
         std=[0.247, 0.243, 0.261]
@@ -41,15 +52,17 @@ def cifar10(batch_size, num_workers=1):
 
     trainset = CIFAR10(root='./CIFAR10_DATA', train=True, download=True,
                         transform=train_transform)
-    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True,
-                             num_workers=num_workers)
-
     testset = CIFAR10(root='./CIFAR10_DATA', train=False, download=True,
                         transform=test_transform)
+
+    trainloader = DataLoader(trainset, batch_size=batch_size, 
+                             num_workers=num_workers, sampler=train_sampler)
+    valloader = DataLoader(trainset, batch_size=batch_size, 
+                            num_workers=num_workers, sampler=val_sampler)
     testloader = DataLoader(testset, batch_size=batch_size, shuffle=True,
                             num_workers=num_workers)
 
-    return trainset, testset, trainloader, testloader
+    return trainset, testset, trainloader, valloader, testloader
 
 
 def svhn(batch_size, num_workers=1):

@@ -176,3 +176,9 @@ def resnet50(stochastic, device):
         return ResNet(BottleneckBlock, [3,4,6,3], device)
     else:
         return deterministic_resnet.resnet50()
+
+def resnet101(stochastic, device):
+    if stochastic:
+        return ResNet(BottleneckBlock, [3, 4, 23, 3], device)
+    else:
+        return deterministic_resnet.resnet101()
