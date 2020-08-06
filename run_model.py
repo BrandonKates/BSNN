@@ -162,7 +162,7 @@ def run_model(model, optimizer, start_epoch, args, train_loader, test_loader, de
         loss, acc = test(args, model, device, test_loader, criterion, num_labels)
         if not args.no_log:
             record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
-        if (epoch % 10) == 0 and not args.no_save:
+        if (epoch % 50) == 0 and not args.no_save:
             checkpoint(model, optimizer, epoch+1, args.experiment_name)
 
     if not args.no_save:
