@@ -29,6 +29,55 @@ class JangScheduler(_TempScheduler):
             temp.val = tau
 
 
+class AdaScheduler(_TempScheduler):
+    def __init__(self, temps, base_temp, factor=.5, patience=10,
+            threshold=.01, cooldown=0, max_temp=2.):
+        super(AdaScheduler, self).__init__(temps)
+        self.base_temp = base_temp
+        self.factor = factor
+        self.patience = patience
+        self.threshold = threshold
+        self.cooldown = cooldown
+        self.in_cooldown = False
+        self.cooldown_epochs = 0
+        self.patience_epochs = 0
+        self.best_loss = -1
+        self.max_temp = max_temp
+
+        for temp in self.temps:
+            temp.val = self.base_temp
+
+    def adjust(self, loss):
+        if self.best_loss == -1:
+            self.best_loss = loss
+            return
+
+        if self.in_cooldown:
+            self.cooldown_epochs += 1
+            if self.cooldown_epochs > self.cooldown:
+                self.cooldown_epochs = 0
+                self.in_cooldown = False
+        else:
+            if loss < self._threshold():
+                self.best_loss = loss
+                self.patience_epochs = 0
+            else:
+                self.patience_epochs += 1
+                if self.patience_epochs > self.patience:
+                    self._adjust_temps()
+                    self.patience_epochs = 0
+                    self.in_cooldown = True
+
+    def _threshold(self):
+        return self.best_loss * (1 - self.threshold)
+
+    def _adjust_temps(self):
+        for temp in self.temps:
+            temp.val += self.factor
+            if temp.val > self.max_temp:
+                temp.val = self.max_temp
+
+     
 class ConstScheduler(_TempScheduler):
     def __init__(self, temps, const):
         super(ConstScheduler, self).__init__(temps)

@@ -73,6 +73,7 @@ class Parser():
         self.parser.add_argument('--temp-exp', type=float, default=1e-2)
         self.parser.add_argument('--temp-limit', type=float, default=.5)
         self.parser.add_argument('--temp-const', type=float, default=1.)
+        self.parser.add_argument('--temp-ada', type=float)
 
         # densenet related arguments
         self.parser.add_argument('--layers', type=int, default=100)

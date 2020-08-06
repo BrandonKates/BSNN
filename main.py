@@ -27,7 +27,12 @@ def main():
 
     torch.manual_seed(args.seed)
 
-    train_data, test_data, train_loader, test_loader = get_data(args)
+    data = get_data(args)
+    if len(data) == 4:
+        train_data, test_data, train_loader, test_loader = data
+        val_loader = None
+    elif len(data) == 5:
+        train_data, test_data, train_loader, val_loader, test_loader = data
 
     if 'resnet' in args.model:
         constructor = getattr(resnet, args.model)
@@ -63,7 +68,8 @@ def main():
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_epoch = checkpoint['epoch']
 
-    run_model(model, optimizer, start_epoch, args, train_loader, test_loader, device)
+    run_model(model, optimizer, start_epoch, args, device, train_loader,
+            test_loader, val_loader)
 
 if __name__ == '__main__':
     main()

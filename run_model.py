@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-from optim import JangScheduler, ConstScheduler
+from optim import JangScheduler, ConstScheduler, AdaScheduler
 import layers as L
 
 def adjust_lr(base_lr, epoch, optimizer):
@@ -76,6 +76,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion,
     model.train()
     losses = []
     temps = []
+    grads = []
     for batch_idx, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.float().to(device), labels.long().to(device)
         optimizer.zero_grad()
@@ -83,6 +84,7 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion,
         loss.backward()
         losses.append(loss.item())
         temps.append(avg(model_temps(model)))
+        grads.append(avg(model_grads(model)))
         optimizer.step() 
         if temp_schedule:
             temp_schedule.step()
@@ -90,12 +92,36 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion,
             t = avg(model_temps(model))
             inputs_seen = batch_idx * len(inputs)
             inputs_tot = len(train_loader.dataset)
+            if train_loader.sampler:
+                inputs_tot = len(train_loader.sampler.indices)
             pct = 100. * batch_idx / len(train_loader)
             log_train_step(model, epoch, inputs_seen, inputs_tot, pct, loss.item(), t)
 
     if metrics_writer:
         record_metrics(metrics_writer, epoch, 'train', loss=avg(losses),
-            temp=avg(temps))
+            temp=avg(temps), grads=avg(grads))
+
+def val(args, model, device, val_loader, epoch, criterion,
+        metrics_writer=None, temp_schedule=None):
+    model.eval()
+    val_loss = 0
+    with torch.no_grad():
+        for inputs, labels in val_loader:
+            inputs, labels = inputs.float().to(device), labels.long().to(device)
+            outputs = []
+            outputs.append(model(inputs))
+            mean_output = torch.mean(torch.stack(outputs), dim=0)
+            pred = mean_output.argmax(dim=1)
+            val_loss += criterion(mean_output, labels).sum().item()
+
+    val_loss /= len(val_loader.dataset)
+
+    if metrics_writer:
+        record_metrics(metrics_writer, epoch, 'val', loss=val_loss)
+        logging.info(f'Val Epoch {epoch}, Loss={val_loss}')
+
+    if temp_schedule and isinstance(temp_schedule, AdaScheduler):
+        temp_schedule.adjust(val_loss)
 
 
 def test(args, model, device, test_loader, criterion, num_labels):
@@ -124,13 +150,15 @@ def _temp_scheduler(temps, args):
     if args.temp_jang:
         N, r, limit = args.temp_step, args.temp_exp, args.temp_limit
         return JangScheduler(temps, N, r, limit)
+    elif args.temp_ada:
+        return AdaScheduler(temps, args.temp_ada)
     else:
         return ConstScheduler(temps, args.temp_const)
 
 
-def run_model(model, optimizer, start_epoch, args, train_loader, test_loader, device):
+def run_model(model, optimizer, start_epoch, args, device, train_loader, 
+                test_loader, val_loader=None):
     criterion = nn.CrossEntropyLoss()
-
     handlers = [logging.StreamHandler()]
     metrics_writer = None
     if not args.no_log:
@@ -159,6 +187,9 @@ def run_model(model, optimizer, start_epoch, args, train_loader, test_loader, de
             adjust_lr(args.lr, epoch, optimizer)
         train(args, model, device, train_loader, optimizer, epoch, criterion,
                 metrics_writer, temp_schedule)
+        if val_loader:
+            val(args, model, device, val_loader, epoch, criterion,
+                    metrics_writer, temp_schedule)
         loss, acc = test(args, model, device, test_loader, criterion, num_labels)
         if not args.no_log:
             record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
