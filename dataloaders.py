@@ -1,7 +1,7 @@
 import random
 
 from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler
-from torchvision.datasets import CIFAR10, MNIST, SVHN
+from torchvision.datasets import CIFAR10, MNIST, SVHN, STL10
 from torchvision import transforms
 
 def mnist(resize=False, test_split=0.2, batch_size=1, num_workers=1):
@@ -79,3 +79,18 @@ def svhn(batch_size, num_workers=1):
 
     return trainset, testset, trainloader, testloader
 
+
+def stl10(batch_size, num_workers=1):
+    ts = transforms.Compose([
+        transforms.Resize(32),
+        transforms.ToTensor()
+    ])
+    trainset = STL10(root='./STL10_DATA', split='train', download=True,
+            transform=ts)
+    testset = STL10(root='./STL10_DATA', split='test', transform=ts,
+            download=True)
+    trainloader = DataLoader(trainset, batch_size=batch_size,
+            num_workers=num_workers, shuffle=True)
+    testloader = DataLoader(testset, batch_size=batch_size,
+            num_workers=num_workers, shuffle=True)
+    return trainset, testset, trainloader, testloader

@@ -58,7 +58,7 @@ def record_metrics(writer, epoch, phase, **metrics):
 def log_train_step(model, epoch, inputs_seen, inputs_tot, pct, loss, temp):
     fmt = 'Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTemp: {:.6f}'
     grads = model_grads(model)
-    mean_grad = sum(grads)/len(grads)
+    mean_grad = avg(grads) 
     grads = '\tGrads: {:.6f}'.format(mean_grad)
     log_str = fmt.format(epoch, inputs_seen, inputs_tot, pct, loss, temp)
     logging.info(log_str + grads)

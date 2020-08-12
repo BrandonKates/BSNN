@@ -48,8 +48,8 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
             pred = mean_output.argmax(dim=1)
             confidence = torch.max(torch.nn.Softmax(dim=1)(mean_output), dim=1)[0]
             for i in range(len(confidence)):
-                bins_accuracy[int(confidence[i] * 10)].append((pred[i] == labels[i]).item())
-                bins_confidence[int(confidence[i] * 10)].append((pred[i]).item())
+                bins_accuracy[min(int(confidence[i] * 10), 9)].append((pred[i] == labels[i]).item())
+                bins_confidence[min(int(confidence[i] * 10), 9)].append((pred[i]).item())
                                 
 
     calc_calibration_error(bins_confidence, bins_accuracy)
@@ -83,7 +83,11 @@ def main():
 
     torch.manual_seed(args.seed)
 
-    train_data, test_data, train_loader, test_loader = get_data(args)
+    data = get_data(args)
+    if len(data) == 4:
+        train_data, test_data, train_loader, test_loader = data
+    elif len(data) == 5:
+        train_data, test_data, train_loader, val_loader, test_loader = data
 
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
@@ -107,7 +111,11 @@ def main():
         }
         model = models[args.model](*init_args).to(device)
 
-    model.load_state_dict(torch.load(args.load_location))
+    saved_state = torch.load(args.resume)
+    if args.resume[-4:] == '.tar':
+        saved_state = saved_state['model_state_dict']
+
+    model.load_state_dict(saved_state)
     print("Model Architecture: ", model)
     print("Using device: ", device)
     print("Train Data Shape: ", train_data.data.shape)
