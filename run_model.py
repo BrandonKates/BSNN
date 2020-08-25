@@ -23,6 +23,8 @@ def model_grads(model):
     for m in model.modules():
         if isinstance(m, L.Conv2d) or isinstance(m, L.Linear):
             grads.append(torch.norm(m.inner.weight.grad).item())
+        elif isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+            grads.append(torch.norm(m.weight.grad).item())
     return grads
 
 
@@ -146,7 +148,7 @@ def test(args, model, device, test_loader, criterion, num_labels):
     return test_loss, correct/len(test_loader.dataset)
 
 
-def _temp_scheduler(temps, args):
+def get_temp_scheduler(temps, args):
     if args.temp_jang:
         N, r, limit = args.temp_step, args.temp_exp, args.temp_limit
         return JangScheduler(temps, N, r, limit)
@@ -173,7 +175,7 @@ def run_model(model, optimizer, start_epoch, args, device, train_loader,
 
     logging.basicConfig(handlers=handlers, format='%(message)s', level=logging.INFO)
 
-    temp_schedule = None if args.deterministic else _temp_scheduler(model_temps(model, val_only=False), args)
+    temp_schedule = None if args.deterministic else get_temp_scheduler(model_temps(model, val_only=False), args)
 
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1

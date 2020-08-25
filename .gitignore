@@ -12,3 +12,6 @@ scripts/*.log
 SVHN/*
 runs/
 checkpoints/
+STL10_DATA
+*.txt
+*.png

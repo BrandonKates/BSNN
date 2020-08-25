@@ -5,12 +5,13 @@ from dataloaders import cifar10, mnist, svhn
 from models import lenet5, simpleconv, complexconv, resnet, vgg
 from parser import Parser
 from main import get_data
-from run_model import model_grads, model_temps
+from run_model import model_grads, model_temps, get_temp_scheduler
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import numpy as np
-import layers as L
+
+from optim import ConstScheduler
 
 def get_brier_score(outputs, labels, device):
     num_classes = outputs.shape[1]
@@ -111,8 +112,6 @@ def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
                 images.grad.data.fill_(0)
             loss.backward()
             grad += images.grad.data 
-        #print(f'FGSM grad: {torch.norm(images.grad)}')
-        #print(f'model grads: {model_grads(model)}')
         grad = torch.sign(grad) # Take the sign of the gradient.
         images_adv = torch.clamp(images.data + epsilon*grad,min_val,max_val) # x_adv = x + epsilon*grad
         adv_output = F.softmax(model(images_adv), dim = 1).data  # output with adverserial noise
@@ -180,6 +179,8 @@ def main():
         calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, 1)
         adv_robust(model, test_loader, 1, device)
     else:
+        temp_schedule = get_temp_scheduler(model_temps(model, val_only=False), args)
+        temp_schedule.step()
         for num_passes in [1, 5, 10]:
             calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
             adv_robust(model, test_loader, num_passes, device)
