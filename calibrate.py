@@ -1,3 +1,4 @@
+import logging
 import torch
 import torch.nn.functional as F
 
@@ -5,13 +6,15 @@ from dataloaders import cifar10, mnist, svhn
 from models import lenet5, simpleconv, complexconv, resnet, vgg
 from parser import Parser
 from main import get_data
-from run_model import model_grads, model_temps, get_temp_scheduler
+from run_model import model_grads, model_temps, get_temp_scheduler, setup_logging
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import numpy as np
 
 from optim import ConstScheduler
+import layers as L
+
 
 def get_brier_score(outputs, labels, device):
     num_classes = outputs.shape[1]
@@ -47,11 +50,11 @@ def calc_calibration_error(bins_confidence, bins_accuracy):
     bins_avg_confidence = list(map(lambda x: 0 if len(x) == 0 else np.mean(x), bins_confidence))
     ece = sum(np.array(num_samples)*np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))/sum(num_samples)
     mce = max(np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))
-    print("ECE: {:.3f}, MCE: {:.3f}".format(ece, mce))
+    logging.info("ECE: {:.3f}, MCE: {:.3f}".format(ece, mce))
 
 
 def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
-    print('Plotting for num passes ' + str(num_passes))        
+    logging.info('Plotting for num passes ' + str(num_passes))        
     model.eval()
     test_loss = 0
     brier_score = 0
@@ -80,7 +83,7 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
 
     calc_calibration_error(bins_confidence, bins_accuracy)
     plot_calibration_accuracy(bins_accuracy, args.model + "_" + str(num_passes))
-    print(f'Correct: {correct} Test Loss: {test_loss}, Brier Score: {brier_score}\n')
+    logging.info(f'Correct: {correct} Test Loss: {test_loss}, Brier Score: {brier_score}\n')
 
 
 def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
@@ -89,6 +92,7 @@ def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
     correct = 0
     total = 0
     avg_entropy = 0 
+    grad_norms = []
     for i, (images,labels) in enumerate(test_loader):
         min_val = images.min().item()
         max_val = images.max().item()
@@ -112,6 +116,8 @@ def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
                 images.grad.data.fill_(0)
             loss.backward()
             grad += images.grad.data 
+        grad = grad / sample_num
+        grad_norms.append(torch.norm(grad))
         grad = torch.sign(grad) # Take the sign of the gradient.
         images_adv = torch.clamp(images.data + epsilon*grad,min_val,max_val) # x_adv = x + epsilon*grad
         adv_output = F.softmax(model(images_adv), dim = 1).data  # output with adverserial noise
@@ -123,7 +129,7 @@ def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
         total += labels.size(0)
         adv_correct += (adv_predicted == labels).sum().item()
         correct += (predicted == labels).sum().item()
-    print(adv_correct/total)
+    logging.info(f'Eps: {epsilon} Score: {adv_correct/total} Avg Grad: {sum(grad_norms)/len(grad_norms)}')
     return adv_correct/total
 
 
@@ -150,7 +156,7 @@ def main():
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
     output_size = num_labels
-
+    setup_logging(args)
 
     if 'resnet' in args.model:
         constructor = getattr(resnet, args.model)
@@ -174,14 +180,15 @@ def main():
         saved_state = saved_state['model_state_dict']
 
     model.load_state_dict(saved_state)
-    print("Test Data Shape: ", test_data.data.shape)
     if args.deterministic:
         calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, 1)
         adv_robust(model, test_loader, 1, device)
     else:
-        temp_schedule = get_temp_scheduler(model_temps(model, val_only=False), args)
-        temp_schedule.step()
-        for num_passes in [1, 5, 10]:
+        get_temp_scheduler(model_temps(model, val_only=False), args).step()
+        for m in model.modules():
+            if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
+                m.need_grads = True
+        for num_passes in [5, 10]:
             calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
             adv_robust(model, test_loader, num_passes, device)
 
