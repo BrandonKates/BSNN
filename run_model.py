@@ -157,23 +157,27 @@ def get_temp_scheduler(temps, args):
     else:
         return ConstScheduler(temps, args.temp_const)
 
-
-def run_model(model, optimizer, start_epoch, args, device, train_loader, 
-                test_loader, val_loader=None):
-    criterion = nn.CrossEntropyLoss()
+def setup_logging(args):
     handlers = [logging.StreamHandler()]
-    metrics_writer = None
     if not args.no_log:
-        if not path.exists(args.metrics_dir):
-            mkdir(args.metrics_dir)
-        metrics_path = path.join(args.metrics_dir, args.experiment_name)
-        metrics_writer = SummaryWriter(log_dir=metrics_path)
         if not path.exists(args.log_dir):
             mkdir(args.log_dir)
         log_file = path.join(args.log_dir, f'{args.experiment_name}.log')
         handlers.append(logging.FileHandler(log_file))
 
     logging.basicConfig(handlers=handlers, format='%(message)s', level=logging.INFO)
+
+
+def run_model(model, optimizer, start_epoch, args, device, train_loader, 
+                test_loader, val_loader=None):
+    criterion = nn.CrossEntropyLoss()
+    setup_logging(args)
+    metrics_writer = None
+    if not args.no_log:
+        if not path.exists(args.metrics_dir):
+            mkdir(args.metrics_dir)
+        metrics_path = path.join(args.metrics_dir, args.experiment_name)
+        metrics_writer = SummaryWriter(log_dir=metrics_path)
 
     temp_schedule = None if args.deterministic else get_temp_scheduler(model_temps(model, val_only=False), args)
 

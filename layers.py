@@ -23,6 +23,7 @@ class _GumbelLayer(nn.Module):
         super(_GumbelLayer, self).__init__()
         self.inner = inner
         self.device = device
+        self.need_grads = False
         if norm:
             self.norm = norm
         else:
@@ -43,7 +44,7 @@ class _GumbelLayer(nn.Module):
 
 
     def sample(self, p):
-        if self.training:
+        if self.training or self.need_grads:
             # sample relaxed bernoulli dist
             return self._gumbel_softmax(p) 
         else:

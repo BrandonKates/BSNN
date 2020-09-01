@@ -15,6 +15,12 @@ import numpy as np
 from optim import ConstScheduler
 import layers as L
 
+def _log_calibration(ece, mce, correct, test_loss, brier_score, prefix=None):
+    if prefix:
+        logging.info(prefix)
+    msg = f'ECE:{ece} \nMCE:{mce} \nCORRECT: {correct}\nNLL: {test_loss}\nbrier: {brier_score}'
+    logging.info(msg)
+
 
 def get_brier_score(outputs, labels, device):
     num_classes = outputs.shape[1]
@@ -50,11 +56,10 @@ def calc_calibration_error(bins_confidence, bins_accuracy):
     bins_avg_confidence = list(map(lambda x: 0 if len(x) == 0 else np.mean(x), bins_confidence))
     ece = sum(np.array(num_samples)*np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))/sum(num_samples)
     mce = max(np.abs(np.array(bins_avg_accuracy) - np.array(bins_avg_confidence)))
-    logging.info("ECE: {:.3f}, MCE: {:.3f}".format(ece, mce))
+    return ece, mce
 
 
 def calc_calibration(args, model, device, test_loader, batch_size, num_labels, num_passes):
-    logging.info('Plotting for num passes ' + str(num_passes))        
     model.eval()
     test_loss = 0
     brier_score = 0
@@ -81,9 +86,9 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
                 bins_confidence[min(int(confidence[i]*10), 9)].append((pred[i]).item())
                                 
 
-    calc_calibration_error(bins_confidence, bins_accuracy)
+    ece, mce = calc_calibration_error(bins_confidence, bins_accuracy)
     plot_calibration_accuracy(bins_accuracy, args.model + "_" + str(num_passes))
-    logging.info(f'Correct: {correct} Test Loss: {test_loss}, Brier Score: {brier_score}\n')
+    return ece, mce, correct, test_loss, brier_score 
 
 
 def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
@@ -181,16 +186,20 @@ def main():
 
     model.load_state_dict(saved_state)
     if args.deterministic:
-        calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, 1)
-        adv_robust(model, test_loader, 1, device)
+        cal_results = calc_calibration(args, model, device, test_loader, 
+                                        args.batch_size, num_labels, 1)
+        _log_calibration(*cal_results)
+        #adv_robust(model, test_loader, 1, device)
     else:
         get_temp_scheduler(model_temps(model, val_only=False), args).step()
         for m in model.modules():
             if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
                 m.need_grads = True
-        for num_passes in [5, 10]:
-            calc_calibration(args, model, device, test_loader, args.batch_size, num_labels, num_passes)
-            adv_robust(model, test_loader, num_passes, device)
+        for num_passes in [1, 5, 25, 125]:
+            cal_results = calc_calibration(args, model, device, test_loader, 
+                                           args.batch_size, num_labels, num_passes)
+            _log_calibration(*cal_results, prefix=f'NUM PASSES: {num_passes}')
+            #adv_robust(model, test_loader, num_passes, device)
 
 
 if __name__ == '__main__':
