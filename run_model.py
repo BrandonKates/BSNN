@@ -24,7 +24,8 @@ def model_grads(model):
         if isinstance(m, L.Conv2d) or isinstance(m, L.Linear):
             grads.append(torch.norm(m.inner.weight.grad).item())
         elif isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-            grads.append(torch.norm(m.weight.grad).item())
+            if m.weight.grad != None:
+                grads.append(torch.norm(m.weight.grad).item())
     return grads
 
 
@@ -95,7 +96,10 @@ def train(args, model, device, train_loader, optimizer, epoch, criterion,
             inputs_seen = batch_idx * len(inputs)
             inputs_tot = len(train_loader.dataset)
             if train_loader.sampler:
-                inputs_tot = len(train_loader.sampler.indices)
+                try:
+                    inputs_tot = len(train_loader.sampler.indices)
+                except:
+                    inputs_tot = len(train_loader.sampler)
             pct = 100. * batch_idx / len(train_loader)
             log_train_step(model, epoch, inputs_seen, inputs_tot, pct, loss.item(), t)
 

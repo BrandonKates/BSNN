@@ -1,25 +1,39 @@
+import csv
+from glob import glob
+import os
 import logging
 import torch
 import torch.nn.functional as F
 
-from dataloaders import cifar10, mnist, svhn
-from models import lenet5, simpleconv, complexconv, resnet, vgg
+from models import lenet5, resnet, vgg
 from parser import Parser
 from main import get_data
-from run_model import model_grads, model_temps, get_temp_scheduler, setup_logging
+from run_model import model_grads, model_temps, get_temp_scheduler, setup_logging, avg
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import numpy as np
 
-from optim import ConstScheduler
 import layers as L
 
-def _log_calibration(ece, mce, correct, test_loss, brier_score, prefix=None):
+def _log_calibration(ece, mce, test_loss, brier_score, correct, prefix=None):
     if prefix:
         logging.info(prefix)
     msg = f'ECE:{ece} \nMCE:{mce} \nCORRECT: {correct}\nNLL: {test_loss}\nbrier: {brier_score}'
     logging.info(msg)
+
+def _write_results(rows):
+    results_file = 'results.csv'
+    cols = [
+        'model', 'dataset', 'file', 'stoch?', 'temp', 'passes', 'ece', 'mce',
+        'nll', 'brier', 'correct'
+    ]
+    mode = 'a' if os.path.exists(results_file) else 'w'
+    with open(results_file, mode) as fp:
+        w = csv.writer(fp)
+        if mode == 'w':
+            w.writerow(cols)
+        w.writerows(rows)
 
 
 def get_brier_score(outputs, labels, device):
@@ -79,6 +93,7 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
             pred = mean_output.argmax(dim=1)
             correct += pred.eq(labels.view_as(pred)).sum().item()
             softmaxed = torch.nn.Softmax(dim=1)(mean_output)
+            # TODO check `softmaxed`
             brier_score += get_brier_score(softmaxed, labels, device)
             confidence = torch.max(softmaxed, dim=1)[0]
             for i in range(len(confidence)):
@@ -88,7 +103,7 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
 
     ece, mce = calc_calibration_error(bins_confidence, bins_accuracy)
     plot_calibration_accuracy(bins_accuracy, args.model + "_" + str(num_passes))
-    return ece, mce, correct, test_loss, brier_score 
+    return ece, mce, test_loss, brier_score, correct
 
 
 def FGSM(model, test_loader, device, sample_num=1, epsilon=0.1):
@@ -165,42 +180,54 @@ def main():
 
     if 'resnet' in args.model:
         constructor = getattr(resnet, args.model)
-        model = constructor(not args.deterministic, device).to(device)
+        model_stoch = constructor(True, device).to(device)
+        model_det = constructor(False, device).to(device)
 
     elif 'vgg' in args.model:
         constructor = getattr(vgg, args.model)
-        model = constructor(not args.deterministic, device, args.orthogonal).to(device)
+        model_stoch = constructor(True, device, args.orthogonal).to(device)
+        model_det = constructor(False, device, args.orthogonal).to(device)
 
     else:
-        init_args = [args.normalize, not args.deterministic, device]
-        models = {
-            'lenet5': lenet5.LeNet5,
-            'simpleconv': simpleconv.SimpleConv,
-            'complexconv': complexconv.ComplexConv
-        }
-        model = models[args.model](*init_args).to(device)
+        stoch_args = [True, True, device]
+        det_args = [False, False, device]
+        model_stoch = lenet5.LeNet5(*stoch_args).to(device)
+        model_det = lenet5.LeNet5(*det_args).to(device)
 
-    saved_state = torch.load(args.resume)
-    if args.resume[-4:] == '.tar':
-        saved_state = saved_state['model_state_dict']
+    # load saved parameters
+    saved_models = glob(f'experimental_models/{args.model}*')
+    saved_det = saved_models[0] if 'det' in saved_models[0] else saved_models[1]
+    saved_stoch = saved_models[1-saved_models.index(saved_det)]
+    it = zip([model_stoch, model_det], [saved_stoch, saved_det])
+    for model, param_path in it:
+        saved_state = torch.load(param_path)
+        if param_path[-4:] == '.tar':
+            saved_state = saved_state['model_state_dict']
+        model.load_state_dict(saved_state)
 
-    model.load_state_dict(saved_state)
-    if args.deterministic:
-        cal_results = calc_calibration(args, model, device, test_loader, 
-                                        args.batch_size, num_labels, 1)
+    rows = []
+    det_row_prefix = [args.model,args.dataset,saved_det,False,0,1]
+    for _ in range(args.inference_passes):
+        cal_results = [*calc_calibration(args, model_det, device, test_loader, 
+                                        args.batch_size, num_labels, 1)]
+        rows.append(det_row_prefix+cal_results)
         _log_calibration(*cal_results)
-        #adv_robust(model, test_loader, 1, device)
-    else:
-        get_temp_scheduler(model_temps(model, val_only=False), args).step()
-        for m in model.modules():
-            if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
-                m.need_grads = True
-        for num_passes in [1, 5, 25, 125]:
-            cal_results = calc_calibration(args, model, device, test_loader, 
-                                           args.batch_size, num_labels, num_passes)
-            _log_calibration(*cal_results, prefix=f'NUM PASSES: {num_passes}')
-            #adv_robust(model, test_loader, num_passes, device)
 
+    get_temp_scheduler(model_temps(model_stoch, val_only=False), args).step()
+    stoch_row_prefix = [args.model, args.dataset, saved_stoch, True, 
+                        avg(model_temps(model_stoch)), 1]
+    for m in model_stoch.modules():
+        if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
+            m.need_grads = True
+    for num_passes in [1, 5, 25, 125]:
+        for _ in range(args.inference_passes):
+            cal_results = [*calc_calibration(args, model_stoch, device, test_loader, 
+                                           args.batch_size, num_labels, num_passes)]
+            stoch_row_prefix[-1] = num_passes
+            rows.append(stoch_row_prefix+cal_results)
+            _log_calibration(*cal_results, prefix=f'NUM PASSES: {num_passes}')
+
+    _write_results(rows)
 
 if __name__ == '__main__':
     main()
