@@ -25,7 +25,7 @@ def _log_calibration(ece, mce, test_loss, brier_score, correct, prefix=None):
 def _write_results(rows):
     results_file = 'results.csv'
     cols = [
-        'model', 'dataset', 'file', 'stoch?', 'temp', 'passes', 'ece', 'mce',
+        'model', 'dataset', 'file', 'stoch?', 'passes', 'ece', 'mce',
         'nll', 'brier', 'correct'
     ]
     mode = 'a' if os.path.exists(results_file) else 'w'
@@ -88,14 +88,16 @@ def calc_calibration(args, model, device, test_loader, batch_size, num_labels, n
             for _ in range(num_passes):
                 outputs.append(model(inputs))
 
-            mean_output = torch.mean(torch.stack(outputs), dim=0)
+            stacked = torch.stack(outputs)
+            mean_output = torch.mean(stacked, dim=0)
+            softmaxed = torch.nn.Softmax(dim=1)(stacked)
+            mean_softmaxed = torch.mean(softmaxed, dim=0)
             test_loss += criterion(mean_output, labels).sum().item()
             pred = mean_output.argmax(dim=1)
             correct += pred.eq(labels.view_as(pred)).sum().item()
-            softmaxed = torch.nn.Softmax(dim=1)(mean_output)
             # TODO check `softmaxed`
-            brier_score += get_brier_score(softmaxed, labels, device)
-            confidence = torch.max(softmaxed, dim=1)[0]
+            brier_score += get_brier_score(mean_softmaxed, labels, device)
+            confidence = torch.max(mean_softmaxed, dim=1)[0]
             for i in range(len(confidence)):
                 bins_accuracy[min(int(confidence[i]*10), 9)].append((pred[i] == labels[i]).item())
                 bins_confidence[min(int(confidence[i]*10), 9)].append((pred[i]).item())
@@ -206,7 +208,7 @@ def main():
         model.load_state_dict(saved_state)
 
     rows = []
-    det_row_prefix = [args.model,args.dataset,saved_det,False,0,1]
+    det_row_prefix = [args.model,args.dataset,saved_det,False,1]
     for _ in range(args.inference_passes):
         cal_results = [*calc_calibration(args, model_det, device, test_loader, 
                                         args.batch_size, num_labels, 1)]
@@ -214,11 +216,7 @@ def main():
         _log_calibration(*cal_results)
 
     get_temp_scheduler(model_temps(model_stoch, val_only=False), args).step()
-    stoch_row_prefix = [args.model, args.dataset, saved_stoch, True, 
-                        avg(model_temps(model_stoch)), 1]
-    for m in model_stoch.modules():
-        if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
-            m.need_grads = True
+    stoch_row_prefix = [args.model, args.dataset, saved_stoch, True, 1]
     for num_passes in [1, 5, 25, 125]:
         for _ in range(args.inference_passes):
             cal_results = [*calc_calibration(args, model_stoch, device, test_loader, 
@@ -228,6 +226,11 @@ def main():
             _log_calibration(*cal_results, prefix=f'NUM PASSES: {num_passes}')
 
     _write_results(rows)
+    """ Use this before stoch adv robust call
+    for m in model_stoch.modules():
+        if isinstance(m, L.Linear) or isinstance(m, L.Conv2d):
+            m.need_grads = True
+    """
 
 if __name__ == '__main__':
     main()
