@@ -163,24 +163,24 @@ def get_temp_scheduler(temps, args):
 
 def setup_logging(args):
     handlers = [logging.StreamHandler()]
-    if not args.no_log:
+    if args.name:
         if not path.exists(args.log_dir):
             mkdir(args.log_dir)
-        log_file = path.join(args.log_dir, f'{args.experiment_name}.log')
+        log_file = path.join(args.log_dir, f'{args.name}.log')
         handlers.append(logging.FileHandler(log_file))
 
     logging.basicConfig(handlers=handlers, format='%(message)s', level=logging.INFO)
 
 
 def run_model(model, optimizer, start_epoch, args, device, train_loader, 
-                test_loader, val_loader=None):
+                 val_loader, test_loader):
     criterion = nn.CrossEntropyLoss()
     setup_logging(args)
     metrics_writer = None
-    if not args.no_log:
+    if args.name:
         if not path.exists(args.metrics_dir):
             mkdir(args.metrics_dir)
-        metrics_path = path.join(args.metrics_dir, args.experiment_name)
+        metrics_path = path.join(args.metrics_dir, args.name)
         metrics_writer = SummaryWriter(log_dir=metrics_path)
 
     temp_schedule = None if args.deterministic else get_temp_scheduler(model_temps(model, val_only=False), args)
@@ -188,11 +188,15 @@ def run_model(model, optimizer, start_epoch, args, device, train_loader,
     # labels should be a whole number from [0, num_classes - 1]
     num_labels = 10 #int(max(max(train_data.targets), max(test_data.targets))) + 1
 
-    logging.info("Model Architecture: ", model)
-    logging.info("Using device: ", device)
-    logging.info("Normalize layer outputs?: ", args.normalize)
+    logging.info("Model Architecture: \n"+ model.__repr__())
+    if device.type == 'cuda':
+        logging.info("Using device: "+device.type + str(device.index))
+    else:
+        logging.info("Using device: "+device.type)
 
-    for epoch in range(start_epoch, start_epoch + args.epochs + 1):
+    logging.info("Normalize layer outputs?: "+ str(args.normalize))
+
+    for epoch in range(start_epoch, start_epoch + args.epochs):
         if args.adjust_lr:
             adjust_lr(args.lr, epoch, optimizer)
         train(args, model, device, train_loader, optimizer, epoch, criterion,
@@ -201,15 +205,15 @@ def run_model(model, optimizer, start_epoch, args, device, train_loader,
             val(args, model, device, val_loader, epoch, criterion,
                     metrics_writer, temp_schedule)
         loss, acc = test(args, model, device, test_loader, criterion, num_labels)
-        if not args.no_log:
+        if args.name:
             record_metrics(metrics_writer, epoch, 'test', loss=loss, accuracy=acc)
-        if (epoch % 50) == 0 and not args.no_save:
-            checkpoint(model, optimizer, epoch+1, args.experiment_name)
+        if (epoch % 50) == 0 and args.name:
+            checkpoint(model, optimizer, epoch+1, args.name)
 
-    if not args.no_save:
+    if args.name:
         torch.save(model.state_dict(),
-                f'checkpoints/{args.experiment_name}_{args.epochs}.pt')
+                f'checkpoints/{args.name}_{args.epochs}.pt')
 
-    if not args.no_log:
+    if args.name:
         metrics_writer.flush()
         metrics_writer.close()

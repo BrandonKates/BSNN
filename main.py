@@ -27,12 +27,7 @@ def main():
 
     torch.manual_seed(args.seed)
 
-    data = get_data(args)
-    if len(data) == 4:
-        train_data, test_data, train_loader, test_loader = data
-        val_loader = None
-    elif len(data) == 5:
-        train_data, test_data, train_loader, val_loader, test_loader = data
+    train_loader, val_loader, test_loader = get_data(args)
 
     if 'resnet' in args.model:
         constructor = getattr(resnet, args.model)
@@ -69,7 +64,7 @@ def main():
         start_epoch = checkpoint['epoch']
 
     run_model(model, optimizer, start_epoch, args, device, train_loader,
-            test_loader, val_loader)
+            val_loader, test_loader)
 
 if __name__ == '__main__':
     main()

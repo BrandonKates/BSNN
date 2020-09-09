@@ -5,7 +5,8 @@ from optim import *
 class Parser():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='Train BSNN Model')
-        self.parser.add_argument('experiment_name')
+        self.parser.add_argument('--name', default=None,
+                    help='experiment named, used for logfiles and checkpoints')
         self.parser.add_argument('--dataset', '-d', type=str, required=True, 
                             help='which dataset do you want to train on?')
 
@@ -40,11 +41,6 @@ class Parser():
 
         self.parser.add_argument('--resume', '-r', type=str, 
                                     help='Location to Load Model from')
-        self.parser.add_argument('--no-save', action='store_true',
-                    default=False, help='pass to prevent model saving/checkpoint')
-        self.parser.add_argument('--no-log', action='store_true',
-                default=False)
-
         self.parser.add_argument('--deterministic', action='store_true', 
                 default=False, 
                 help='Run deterministic variant, if one exists')
