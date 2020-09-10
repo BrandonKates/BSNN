@@ -39,6 +39,14 @@ def _write_results(rows):
 def get_brier_score(outputs, labels, device):
     num_classes = outputs.shape[1]
     one_hot = torch.zeros(labels.size(0), num_classes).to(device).scatter_(1, labels.long().view(-1, 1).data, 1)
+    difference = outputs - labels
+    squared_difference = torch.trace(torch.matmul(difference, torch.transpose(difference)))
+    return (squared_difference / outputs.shape[0] / outputs.shape[1])
+    
+'''        
+def get_brier_score(outputs, labels, device):
+    num_classes = outputs.shape[1]
+    one_hot = torch.zeros(labels.size(0), num_classes).to(device).scatter_(1, labels.long().view(-1, 1).data, 1)
     mask = one_hot.gt(0)
     loss_label = torch.masked_select(outputs, mask)
     loss_label = (1 - loss_label)*(1 - loss_label)
@@ -46,7 +54,7 @@ def get_brier_score(outputs, labels, device):
     loss_other = loss_other*loss_other
     loss = (loss_label.sum() + loss_other.sum()) / outputs.shape[0] / outputs.shape[1]
     return loss.item()
-
+'''
 
 def plot_calibration_accuracy(bins, id):
     num_samples = list(map(lambda x : len(x), bins))
